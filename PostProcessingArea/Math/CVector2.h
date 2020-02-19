@@ -90,5 +90,9 @@ float Dot(const CVector2& v1, const CVector2& v2);
 // Return unit length vector in the same direction as given one
 CVector2 Normalise(const CVector2& v);
 
-
+float Distance
+(
+	const CVector2& p1,
+	const CVector2& p2
+);
 #endif // _CVECTOR3_H_DEFINED_

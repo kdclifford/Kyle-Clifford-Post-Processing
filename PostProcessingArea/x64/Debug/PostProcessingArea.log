@@ -1,7 +1,5 @@
-﻿D:\Users\KClifford1\Desktop\PostProcessingArea\Blur_pp.hlsl(49,12-69): warning X3206: implicit truncation of vector type
-  compilation object save succeeded; see D:\Users\KClifford1\Desktop\PostProcessingArea\Blur_pp.cso
-D:\Users\KClifford1\Desktop\PostProcessingArea\Blur_pp.hlsl(56,9): warning X3206: implicit truncation of vector type
-D:\Users\KClifford1\Desktop\PostProcessingArea\Blur_pp.hlsl(66,12-68): warning X3206: implicit truncation of vector type
-  
-  Scene.cpp
-  PostProcessingArea.vcxproj -> D:\Users\KClifford1\Desktop\PostProcessingArea\\PostProcessingArea.exe
+﻿  CMatrix4x4.cpp
+  Mesh.cpp
+  GraphicsHelpers.cpp
+  Generating Code...
+  PostProcessingArea.vcxproj -> D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\\PostProcessingArea.exe

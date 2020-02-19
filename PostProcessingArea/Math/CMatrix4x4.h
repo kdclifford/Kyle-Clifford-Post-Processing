@@ -38,7 +38,24 @@ public:
     // Initialise this matrix with a pointer to 16 floats 
     void SetValues(float* matrixValues)  { *this = *reinterpret_cast<CMatrix4x4*>(matrixValues); }
 
- 
+	// These reinterpreting functions are not guaranteed to be portable, i.e. may not work on all
+	// compilers (but will on most). However, they improve efficiency and are highly convenient
+
+	// Direct access to rows as CVector4 - allows two dimensional subscripting of elements
+	// Efficient but non-portable. Index in range 0-3 - no validation of index
+	CVector4& operator[](const int iRow)
+	{
+		return *reinterpret_cast<CVector4*>(&e00 + iRow * 4);
+	}
+
+	// Direct access to (const) rows as CVector4 - allows two dimensional subscripting of elements
+	// Efficient but non-portable. Index in range 0-3 - no validation of index
+	const CVector4& operator[](const int iRow) const
+	{
+		return *reinterpret_cast<const CVector4*>(&e00 + iRow * 4);
+	}
+
+
     // Helper functions
     CVector3 GetXAxis() const { return GetRow(0); }
     CVector3 GetYAxis() const { return GetRow(1); }
@@ -78,6 +95,9 @@ CMatrix4x4 operator*(const CMatrix4x4& m1, const CMatrix4x4& m2);
 
 // Return the given CVector4 transformed by the given matrix
 CVector4 operator*(const CVector4& v, const CMatrix4x4& m);
+
+
+
 
 
 /*-----------------------------------------------------------------------------------------

@@ -6,6 +6,7 @@
 #ifndef _CVECTOR3_H_DEFINED_
 #define _CVECTOR3_H_DEFINED_
 
+//#include "CVector4.h"
 #include "MathHelpers.h"
 #include <cmath>
 
@@ -40,6 +41,16 @@ public:
         y = elts[1];
         z = elts[2];
     }
+
+
+	////// Construct using a pointer to three floats
+	//CVector3(const CVector4* v)
+	//{
+	//	x = v->x;
+	//	y = v->y;
+	//	z = v->z;
+	//}
+
 
 
     /*-----------------------------------------------------------------------------------------

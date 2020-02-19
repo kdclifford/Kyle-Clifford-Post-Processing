@@ -55,6 +55,20 @@ public:
     }
 
 
+	// Return reference to x, y & z components as a CVector3. Efficient but non-portable
+	CVector3& Vector3()
+	{
+		return *reinterpret_cast<CVector3*>(&x);
+	}
+
+	// Return const reference to x, y & z components as CVector3. Efficient but non-portable
+	const CVector3& Vector3() const
+	{
+		return *reinterpret_cast<const CVector3*>(&x);
+	}
+
+
+
 };
 
 

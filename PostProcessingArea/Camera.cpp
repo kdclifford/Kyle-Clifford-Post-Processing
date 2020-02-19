@@ -117,6 +117,45 @@ CVector3 Camera::PixelFromWorldPt(CVector3 worldPoint, unsigned int viewportWidt
 }
 
 
+CVector3 Camera::WorldPtFromPixel(CVector2 pixelPt, unsigned int ViewportWidth, unsigned int ViewportHeight)
+{
+	//CVector4 Q;
+	//Q.x = pixelPt.x / (ViewportWidth * 0.5f) - 1.0f;
+	//Q.y = 1.0f - pixelPt.y / (ViewportHeight * 0.5f);
+
+	////Calculate a result world - space point that is exactly on the clip plane
+	//Q.z = 0.0f;
+	//Q.w = m_NearClip;
+
+	////Undo the perspective divide
+	//Q.x *= Q.w;
+	//Q.y *= Q.w;
+	//Q.z *= Q.w;
+
+	//Q = Q * InverseAffine(m_MatViewProj);
+
+	//CVector4 worldPt = Q;
+
+	////++++MISSING Complete this function by refering to lecture notes
+	//return CVector3(worldPt); // Placeholder line - should return correct world point
+	CVector4 cameraPt;
+	cameraPt.x = pixelPt.x / (ViewportWidth * 0.5f) - 1.0f;
+	cameraPt.y = 1.0f - pixelPt.y / (ViewportHeight * 0.5f);
+	cameraPt.z = 0.0f;
+	cameraPt.w = mNearClip;
+
+	cameraPt.x *= cameraPt.w;
+	cameraPt.y *= cameraPt.w;
+	cameraPt.z *= cameraPt.w;
+
+	CVector4 worldPt = cameraPt * mViewProjectionMatrix;
+
+	return CVector4(worldPt).Vector3();
+
+}
+
+
+
 // Return the size of a pixel in world space at the given Z distance. Allows us to convert the 2D size of areas on the screen to actualy sizes in the world
 // Pass the viewport width and height
 CVector2 Camera::PixelSizeInWorldSpace(float Z, unsigned int viewportWidth, unsigned int viewportHeight)

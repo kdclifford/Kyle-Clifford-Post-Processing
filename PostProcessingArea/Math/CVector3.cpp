@@ -9,6 +9,17 @@
     Operators
 -----------------------------------------------------------------------------------------*/
 
+
+//// Construct from a CVector4, discarding w value
+//CVector3& CVector3(const CVector4& v)
+//{
+//	x = v.x;
+//	y = v.y;
+//	z = v.z;
+//}
+
+
+
 // Addition of another vector to this one, e.g. Position += Velocity
 CVector3& CVector3::operator+= (const CVector3& v)
 {

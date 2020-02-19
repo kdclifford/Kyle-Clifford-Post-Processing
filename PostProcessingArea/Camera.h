@@ -73,7 +73,7 @@ public:
 	// Return the size of a pixel in world space at the given Z distance. Allows us to convert the 2D size of areas on the screen to actualy sizes in the world
 	// Pass the viewport width and height
 	CVector2 PixelSizeInWorldSpace(float Z, unsigned int viewportWidth, unsigned int viewportHeight);
-
+	CVector3 WorldPtFromPixel(CVector2 pixelPt, unsigned int ViewportWidth, unsigned int ViewportHeight);
 
 //-------------------------------------
 // Private members

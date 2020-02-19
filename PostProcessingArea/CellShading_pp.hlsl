@@ -23,9 +23,10 @@ SamplerState PointSample : register(s1); // This sampler switches off filtering 
 
 float4 main(PostProcessingInput input) : SV_Target
 {
-    float PixelX = (1 / gViewportWidth) * 3;
-    float PixelY = (1 / gViewportHeight) * 3;
+    float PixelX = (1 / gViewportWidth) ;
+    float PixelY = (1 / gViewportHeight);
     
+    float3 ppColour = SceneTexture.Sample(PointSample, input.sceneUV);
     
     float3 ppCol = float3(0.0f, 0.0f, 0.0f);
 	
@@ -50,6 +51,83 @@ float4 main(PostProcessingInput input) : SV_Target
     }
     else
     {
-        return float4(1.0f, 1.0f, 1.0f, 1.0f);
+        return float4(ppColour, 1.0f);
     }
+    
+    //float exposure = 0.0034f;
+    //float decay = 1.0f;
+    //float density = 1000.84f;
+    //float weight = 5.65f;
+    
+    //float3 gl_FragColor;
+    //float2 deltaTextCoord = float2(input.sceneUV - gLight1Position.xy);
+    //float2 textCoo = input.areaUV;
+    //deltaTextCoord *= 1.0 / float(100) * density;
+    //float illuminationDecay = 1.0;
+	
+	
+    //for (int i = 0; i < 100; i++)
+    //{
+    //    textCoo -= deltaTextCoord;
+    //    float4 sample = SceneTexture.Sample(TexSampler, input.areaUV);
+			
+    //    sample *= illuminationDecay * weight;
+			
+    //    gl_FragColor += sample;
+			
+    //    illuminationDecay *= decay;
+    //}
+	
+	
+    //gl_FragColor *= exposure;
+    
+    //return float4(gl_FragColor, 1.0f);
+    
+    //float4 P = (gLight1Position, 1.0f);
+    //float4 Q = P * gViewProjectionMatrix;
+
+    //if (Q.w < 0)
+    //{
+    //    return false;
+    //}
+    //else
+    //{
+    //    Q.x /= Q.w;
+    //    Q.y /= Q.w;
+    //}
+
+    //PixelPt - > x = (Q.x + 1) * (ViewportWidth / 2);
+    //PixelPt - > y = (1 - Q.y) * (ViewportHeight / 2);
+    
+    
+    
+    //float4 gl_FragColor;
+    //  //compute ray from pixel to light center
+    //float2 ray = input.areaUV - gLightPixelPosition;
+    ////output color
+    //float3 color = float3(0, 0, 0);
+
+    //int samples = 100;
+    //const float blurWidth = -0.85;
+    
+    ////sample the texture NUM_SAMPLES times
+    //for (int i = 0; i < samples; i++)
+    //{
+    //    //sample the texture on the pixel-to-center ray getting closer to the center every iteration
+    //    float scale = 1.0 + blurWidth * (float(i) / float(samples - 1));
+    //    //summing all the samples togheter
+    //    color += (SceneTexture.Sample(PointSample, (ray * scale) + gLightPixelPosition.xy).xyz) / float(samples);
+    //}
+    ////return final color
+    //gl_FragColor = float4(color, 1.0);
+    
+    
+    //return gl_FragColor;
+    
+    
+   
 }
+    
+    
+    
+    

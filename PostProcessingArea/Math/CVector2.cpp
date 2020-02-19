@@ -104,3 +104,15 @@ CVector2 Normalise(const CVector2& v)
         return { v.x * invLength, v.y * invLength };
     }
 }
+
+// Return distance from one point to another - non-member version
+float Distance
+(
+	const CVector2& p1,
+	const CVector2& p2
+)
+{
+	float distX = p1.x - p2.x;
+	float distY = p1.y - p2.y;
+	return sqrt(distX * distX + distY * distY);
+}

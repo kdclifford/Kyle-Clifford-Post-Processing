@@ -71,6 +71,7 @@ const float MOVEMENT_SPEED = 50.0f; // Units per second for movement (what a uni
 // Lock FPS to monitor refresh rate, which will typically set it to 60fps. Press 'p' to toggle to full fps
 bool lockFPS = true;
 
+std::vector<Model*> allModels;
 
 // Meshes, models and cameras, same meaning as TL-Engine. Meshes prepared in InitGeometry function, Models & camera in InitScene
 Mesh* gStarsMesh;
@@ -171,8 +172,8 @@ ID3D11ShaderResourceView* gDistortMapSRV = nullptr;
 
 
 //****************************
-
-
+Model* MoveNearestEntity = 0;
+CVector2 MousePixel;
 
 //--------------------------------------------------------------------------------------
 // Initialise scene geometry, constant buffers and states
@@ -325,6 +326,10 @@ bool InitScene()
 	gGround = new Model(gGroundMesh);
 	gCube   = new Model(gCubeMesh);
 	gCrate  = new Model(gCrateMesh);
+
+	allModels.push_back(gStars);
+	allModels.push_back(gCube);
+	allModels.push_back(gCrate);
 
 	// Initial positions
 	gCube->SetPosition({ 42, 5, -10 });
@@ -823,10 +828,23 @@ void RenderScene()
 {
 	//// Common settings ////
 
+
+	CVector2 pixelPt;
+	CVector3  test =  (gCamera->PixelFromWorldPt(gLights[0].model->Position(), gViewportWidth, gViewportHeight));
+
+	pixelPt.x = test.x;
+	pixelPt.y = test.y;
+
+	gCamera->PixelFromWorldPt(gLights[0].model->Position(), gViewportWidth, gViewportHeight);
+
 	// Set up the light information in the constant buffer
 	// Don't send to the GPU yet, the function RenderSceneFromCamera will do that
 	gPerFrameConstants.light1Colour   = gLights[0].colour * gLights[0].strength;
 	gPerFrameConstants.light1Position = gLights[0].model->Position();
+	//gPerFrameConstants.lightPixelPosition = pixelPt;
+
+
+
 	gPerFrameConstants.light2Colour   = gLights[1].colour * gLights[1].strength;
 	gPerFrameConstants.light2Position = gLights[1].model->Position();
 
@@ -911,6 +929,42 @@ void RenderScene()
 	// When drawing to the off-screen back buffer is complete, we "present" the image to the front buffer (the screen)
 	// Set first parameter to 1 to lock to vsync
 	gSwapChain->Present(lockFPS ? 1 : 0, 0);
+
+	CVector3 test4;
+	CVector2 entityPixel;
+
+	float nearestDistanceMove = 100.0f;
+	for (int i = 0; i < allModels.size(); i++)
+	{
+		test4 = gCamera->PixelFromWorldPt(allModels[i]->Position(), gViewportWidth, gViewportHeight);
+		entityPixel.x = test4.x;
+		entityPixel.y = test4.y;
+		
+			float pixelDistance = Distance(MousePixel, entityPixel);
+			if (pixelDistance < nearestDistanceMove)
+			{
+				
+					MoveNearestEntity = allModels[i];
+					nearestDistanceMove = pixelDistance;
+					break;
+			}
+			else
+			{
+					MoveNearestEntity = 0;
+			}
+		
+	}
+
+
+
+
+
+
+
+
+
+
+
 }
 
 
@@ -947,6 +1001,39 @@ void UpdateScene(float frameTime)
 
 	if (KeyHeld(Key_Period))  zShift += 0.5f;
 	if (KeyHeld(Key_Comma))   zShift -= 0.5f;
+
+	// mouse stuff
+
+	MousePixel.x = GetMouseX();
+	MousePixel.y = GetMouseY();
+
+	//Move entites witht the mouse in the scene
+	if (KeyHeld(Mouse_LButton) && MoveNearestEntity != 0)
+	{
+		CVector3 worldpt = gCamera->WorldPtFromPixel(MousePixel, gViewportWidth, gViewportHeight); //Mouse world pos
+		CVector3 rayCast = Normalise(worldpt - gCamera->Position());   //World point to camera direction 
+		CVector3 camPos = gCamera->Position(); //Main cam pos
+
+		float t = -camPos.y / rayCast.y;
+
+		CVector3 newPos = camPos + (t * rayCast);
+		if (MoveNearestEntity != 0)
+		{
+			//Move to newPos decided by mouse position
+			
+			
+			MoveNearestEntity->SetPosition(newPos);
+				
+			
+		}
+		MoveNearestEntity = 0;
+	}
+	MoveNearestEntity = 0;
+
+
+
+
+
 
 	// Post processing settings - all data for post-processes is updated every frame whether in use or not (minimal cost)
 	
