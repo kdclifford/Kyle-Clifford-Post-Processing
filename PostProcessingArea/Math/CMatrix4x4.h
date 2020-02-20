@@ -34,6 +34,9 @@ public:
     // Get a single row (range 0-3) of the matrix into a CVector3. Fourth element is ignored
     // Can be used to access position or x,y,z axes from a matrix
     CVector3 GetRow(int iRow) const;
+	CVector4 GetRow4(const int iRow) const;
+	CVector4 GetColumn(const int iCol) const;
+
 
     // Initialise this matrix with a pointer to 16 floats 
     void SetValues(float* matrixValues)  { *this = *reinterpret_cast<CMatrix4x4*>(matrixValues); }
@@ -48,7 +51,7 @@ public:
 		return *reinterpret_cast<CVector4*>(&e00 + iRow * 4);
 	}
 
-	// Direct access to (const) rows as CVector4 - allows two dimensional subscripting of elements
+	//// Direct access to (const) rows as CVector4 - allows two dimensional subscripting of elements
 	// Efficient but non-portable. Index in range 0-3 - no validation of index
 	const CVector4& operator[](const int iRow) const
 	{
@@ -64,7 +67,7 @@ public:
     CVector3 GetEulerAngles();
     CVector3 GetScale() const  { return { Length(GetXAxis()), Length(GetYAxis()) , Length(GetZAxis()) }; }
 
-    
+
 	// Post-multiply this matrix by the given one
     CMatrix4x4& operator*=(const CMatrix4x4& m);
 
@@ -83,6 +86,7 @@ public:
     // Transpose the matrix (rows become columns). There are two ways to store a matrix, by rows or by columns.
     // Different apps use different methods. Use Transpose to swap when necessary.
     void Transpose();
+
 };
 
 
@@ -137,5 +141,12 @@ CMatrix4x4 MatrixScaling(const float s);
 // Advanced calulation needed to get the view matrix from the camera's positioning matrix
 CMatrix4x4 InverseAffine(const CMatrix4x4& m);
 
+float Cofactor
+(
+	const CMatrix4x4& m,
+	const int     i,
+	const int     j
+);
+CMatrix4x4 Inverse(const CMatrix4x4& m);
 
 #endif // _CMATRIX4X4_H_DEFINED_

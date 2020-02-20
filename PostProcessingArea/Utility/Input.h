@@ -180,7 +180,7 @@ void KeyUpEvent(KeyCode Key);
 
 // Event called to indicate that the mouse has been moved
 void MouseMoveEvent(int X, int Y);
-
+void MouseWheelMove(int j);
 
 //////////////////////////////////
 // Input functions
@@ -201,5 +201,7 @@ int GetMouseX();
 // Returns current Y position of mouse
 int GetMouseY();
 
+// Returns current Y position of mouse
+int GetMouseWheel();
 
 #endif // _INPUT_H_DEFINED_

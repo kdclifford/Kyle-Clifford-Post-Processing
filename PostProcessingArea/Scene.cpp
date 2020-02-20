@@ -72,6 +72,8 @@ const float MOVEMENT_SPEED = 50.0f; // Units per second for movement (what a uni
 bool lockFPS = true;
 
 std::vector<Model*> allModels;
+float t = 100;
+int oldMouseWheelPos = 0;
 
 // Meshes, models and cameras, same meaning as TL-Engine. Meshes prepared in InitGeometry function, Models & camera in InitScene
 Mesh* gStarsMesh;
@@ -173,6 +175,7 @@ ID3D11ShaderResourceView* gDistortMapSRV = nullptr;
 
 //****************************
 Model* MoveNearestEntity = 0;
+Model* ModelSelected = 0;
 CVector2 MousePixel;
 
 //--------------------------------------------------------------------------------------
@@ -326,10 +329,7 @@ bool InitScene()
 	gGround = new Model(gGroundMesh);
 	gCube   = new Model(gCubeMesh);
 	gCrate  = new Model(gCrateMesh);
-
-	allModels.push_back(gStars);
-	allModels.push_back(gCube);
-	allModels.push_back(gCrate);
+	ModelSelected = gCube;
 
 	// Initial positions
 	gCube->SetPosition({ 42, 5, -10 });
@@ -359,6 +359,12 @@ bool InitScene()
 
 
 	////--------------- Set up camera ---------------////
+
+
+	allModels.push_back(gCube);
+	allModels.push_back(gCrate);
+	allModels.push_back(gLights[0].model);
+	allModels.push_back(gLights[1].model);
 
 	gCamera = new Camera();
 	gCamera->SetPosition({ 25, 18, -45 });
@@ -903,7 +909,7 @@ void RenderScene()
 			else if (gCurrentPostProcessMode == PostProcessMode::Area)
 			{
 				// Pass a 3D point for the centre of the affected area and the size of the (rectangular) area in world units
-				AreaPostProcess(gCurrentPostProcess, gCube->Position(), { 10, 10 });
+				AreaPostProcess(gCurrentPostProcess, ModelSelected->Position(), { 10, 10 });
 			}
 
 			else if (gCurrentPostProcessMode == PostProcessMode::Polygon)
@@ -933,7 +939,7 @@ void RenderScene()
 	CVector3 test4;
 	CVector2 entityPixel;
 
-	float nearestDistanceMove = 100.0f;
+	float nearestDistanceMove = 50.0f;
 	for (int i = 0; i < allModels.size(); i++)
 	{
 		test4 = gCamera->PixelFromWorldPt(allModels[i]->Position(), gViewportWidth, gViewportHeight);
@@ -1007,15 +1013,33 @@ void UpdateScene(float frameTime)
 	MousePixel.x = GetMouseX();
 	MousePixel.y = GetMouseY();
 
+
+
 	//Move entites witht the mouse in the scene
-	if (KeyHeld(Mouse_LButton) && MoveNearestEntity != 0)
+	if (KeyHeld(Mouse_RButton) && MoveNearestEntity != 0)
 	{
+		ModelSelected = MoveNearestEntity;
+		int newMouseWheelPos = 0;
+
 		CVector3 worldpt = gCamera->WorldPtFromPixel(MousePixel, gViewportWidth, gViewportHeight); //Mouse world pos
 		CVector3 rayCast = Normalise(worldpt - gCamera->Position());   //World point to camera direction 
 		CVector3 camPos = gCamera->Position(); //Main cam pos
 
-		float t = -camPos.y / rayCast.y;
+		//t = camPos.z / MoveNearestEntity->Position().z;
 
+		t =   Length( MoveNearestEntity->Position() - gCamera->Position());
+
+		newMouseWheelPos = GetMouseWheel();
+		if (oldMouseWheelPos < newMouseWheelPos)
+		{
+			t += 10;
+		}
+		else if (oldMouseWheelPos > newMouseWheelPos)
+		{
+			t += -10;			
+		}
+		
+		oldMouseWheelPos = newMouseWheelPos;
 		CVector3 newPos = camPos + (t * rayCast);
 		if (MoveNearestEntity != 0)
 		{

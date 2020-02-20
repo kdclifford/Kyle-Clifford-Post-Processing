@@ -223,6 +223,24 @@ CMatrix4x4 MatrixScaling(const float s)
 }
 
 
+// Get a single row (range 0-3) of the matrix
+CVector4 CMatrix4x4::GetRow4(const int iRow) const
+{
+	return CVector4(&e00 + iRow * 4);
+
+}
+
+// Get a single column (range 0-3) of the matrix
+CVector4 CMatrix4x4::GetColumn(const int iCol) const
+{
+
+	const float* pfElts = &e00 + iCol;
+	return CVector4(pfElts[0], pfElts[4], pfElts[8], pfElts[12]);
+
+
+}
+
+
 // Return the inverse of given matrix assuming that it is an affine matrix
 // Advanced calulation needed to get the view matrix from the camera's positioning matrix
 CMatrix4x4 InverseAffine(const CMatrix4x4& m)
@@ -339,66 +357,66 @@ void CMatrix4x4::Transpose()
 }
 
 
-//float Cofactor
-//(
-//	const CMatrix4x4& m,
-//	const int     i,
-//	const int     j
-//)
-//{
-//	// Get rows and columns involved
-//	int rows[3];
-//	int cols[3];
-//	int row = 0, col = 0;
-//	for (int rowCol = 0; rowCol < 4; ++rowCol)
-//	{
-//		if (rowCol != i) rows[row++] = rowCol;
-//		if (rowCol != j) cols[col++] = rowCol;
-//	}
-//
-//	// Calculate 3x3 determinant
-//	float det0 = m[rows[1]][cols[1]] * m[rows[2]][cols[2]] -
-//		m[rows[1]][cols[2]] * m[rows[2]][cols[1]];
-//	float det1 = m[rows[1]][cols[2]] * m[rows[2]][cols[0]] -
-//		m[rows[1]][cols[0]] * m[rows[2]][cols[2]];
-//	float det2 = m[rows[1]][cols[0]] * m[rows[2]][cols[1]] -
-//		m[rows[1]][cols[1]] * m[rows[2]][cols[0]];
-//	float det = m[rows[0]][cols[0]] * det0 +
-//		m[rows[0]][cols[1]] * det1 +
-//		m[rows[0]][cols[2]] * det2;
-//
-//	
-//
-//
-//	// Determine if i+j is even/odd to calculate (-1) term
-//	return ((((i + j) & 1) == 0) ? det : -det);
-//}
-//
-//
-//
-//// Return the inverse of given matrix. Most general, least efficient inverse function
-//// Suitable for non-affine matrices (e.g. a perspective projection matrix)
-//CMatrix4x4 Inverse(const CMatrix4x4& m)
-//{
-//
-//	CMatrix4x4 mOut;
-//
-//	// Calculate determinant
-//	float det = m.e00 * Cofactor(m, 0, 0) + m.e01 * Cofactor(m, 0, 1) +
-//		m.e02 * Cofactor(m, 0, 2) + m.e03 * Cofactor(m, 0, 3);
-//	
-//
-//	// Inverse is (1/determinant)*adjoint matrix. Adjoint matrix is transposed matrix of cofactors
-//	float invDet = 1.0f / det;
-//	for (int i = 0; i < 4; ++i)
-//	{
-//		for (int j = 0; j < 4; ++j)
-//		{
-//			mOut[i][j] = invDet * Cofactor(m, j, i);
-//		}
-//	}
-//
-//	return mOut;
-//
-//
-//}
+float Cofactor
+(
+	const CMatrix4x4& m,
+	const int     i,
+	const int     j
+)
+{
+	// Get rows and columns involved
+	int rows[3];
+	int cols[3];
+	int row = 0, col = 0;
+	for (int rowCol = 0; rowCol < 4; ++rowCol)
+	{
+		if (rowCol != i) rows[row++] = rowCol;
+		if (rowCol != j) cols[col++] = rowCol;
+	}
+
+	// Calculate 3x3 determinant
+	float det0 = m[rows[1]][cols[1]] * m[rows[2]][cols[2]] -
+		m[rows[1]][cols[2]] * m[rows[2]][cols[1]];
+	float det1 = m[rows[1]][cols[2]] * m[rows[2]][cols[0]] -
+		m[rows[1]][cols[0]] * m[rows[2]][cols[2]];
+	float det2 = m[rows[1]][cols[0]] * m[rows[2]][cols[1]] -
+		m[rows[1]][cols[1]] * m[rows[2]][cols[0]];
+	float det = m[rows[0]][cols[0]] * det0 +
+		m[rows[0]][cols[1]] * det1 +
+		m[rows[0]][cols[2]] * det2;
+
+	
+
+
+	// Determine if i+j is even/odd to calculate (-1) term
+	return ((((i + j) & 1) == 0) ? det : -det);
+}
+
+
+
+// Return the inverse of given matrix. Most general, least efficient inverse function
+// Suitable for non-affine matrices (e.g. a perspective projection matrix)
+CMatrix4x4 Inverse(const CMatrix4x4& m)
+{
+
+	CMatrix4x4 mOut;
+
+	// Calculate determinant
+	float det = m.e00 * Cofactor(m, 0, 0) + m.e01 * Cofactor(m, 0, 1) +
+		m.e02 * Cofactor(m, 0, 2) + m.e03 * Cofactor(m, 0, 3);
+	
+
+	// Inverse is (1/determinant)*adjoint matrix. Adjoint matrix is transposed matrix of cofactors
+	float invDet = 1.0f / det;
+	for (int i = 0; i < 4; ++i)
+	{
+		for (int j = 0; j < 4; ++j)
+		{
+			mOut[i][j] = invDet * Cofactor(m, j, i);
+		}
+	}
+
+	return mOut;
+
+
+}

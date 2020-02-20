@@ -68,6 +68,17 @@ public:
 	}
 
 
+	// Access the x, y, z & w components in array style (i.e. v[0], v[1],... same as v.x, v.y,...)
+	float& operator[](const int index)
+	{
+		return (&x)[index];
+	}
+
+	// Access the x, y, z & w elements in array style - const result
+	const float& operator[](const int index) const
+	{
+		return (&x)[index];
+	}
 
 };
 

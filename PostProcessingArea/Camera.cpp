@@ -148,7 +148,9 @@ CVector3 Camera::WorldPtFromPixel(CVector2 pixelPt, unsigned int ViewportWidth, 
 	cameraPt.y *= cameraPt.w;
 	cameraPt.z *= cameraPt.w;
 
-	CVector4 worldPt = cameraPt * mViewProjectionMatrix;
+
+
+	CVector4 worldPt = cameraPt * Inverse( mViewProjectionMatrix);
 
 	return CVector4(worldPt).Vector3();
 

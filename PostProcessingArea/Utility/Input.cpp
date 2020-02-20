@@ -14,6 +14,7 @@ KeyState gKeyStates[NumKeyCodes];
 
 // Current position of mouse
 int gMouseX, gMouseY;
+int gWheelPosition;
 
 
 
@@ -61,6 +62,12 @@ void MouseMoveEvent(int X, int Y)
     gMouseY = Y;
 }
 
+void MouseWheelMove(int j)
+{
+	gWheelPosition = j;
+	//return gWhellPosition;
+}
+
 
 //////////////////////////////////
 // Input functions
@@ -102,4 +109,9 @@ int GetMouseX()
 int GetMouseY()
 {
     return gMouseY;
+}
+
+int GetMouseWheel()
+{
+	return gWheelPosition;
 }
