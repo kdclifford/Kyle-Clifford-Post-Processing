@@ -44,16 +44,16 @@ float4 main(PostProcessingInput input) : SV_Target
     //RGB.b = lerp(topColour.b, bottomColour.b, input.sceneUV.y);
 
     
-   	  // Based on work by Sam Hocevar and Emil Persson
-    float4 P = (RGB.g < RGB.b) ? float4(RGB.bg, -1.0, 2.0 / 3.0) : float4(RGB.gb, 0.0, -1.0 / 3.0);
-    float4 Q = (RGB.r < P.x) ? float4(P.xyw, RGB.r) : float4(RGB.r, P.yzx);
-    float C = Q.x - min(Q.w, Q.y);
-    float H = abs((Q.w - Q.y) / (6 * C + Epsilon) + Q.z);
-	//return float3(H, C, Q.x);
+ //  	  // Based on work by Sam Hocevar and Emil Persson
+ //   float4 P = (RGB.g < RGB.b) ? float4(RGB.bg, -1.0, 2.0 / 3.0) : float4(RGB.gb, 0.0, -1.0 / 3.0);
+ //   float4 Q = (RGB.r < P.x) ? float4(P.xyw, RGB.r) : float4(RGB.r, P.yzx);
+ //   float C = Q.x - min(Q.w, Q.y);
+ //   float H = abs((Q.w - Q.y) / (6 * C + Epsilon) + Q.z);
+	////return float3(H, C, Q.x);
     
-    float3 HCV = float3(H, C, Q.x);
-    float L = HCV.z - HCV.y * 0.5;
-    float S = HCV.y / (1 - abs(L * 2 - 1) + Epsilon);
+ //   float3 HCV = float3(H, C, Q.x);
+ //   float L = HCV.z - HCV.y * 0.5;
+ //   float S = HCV.y / (1 - abs(L * 2 - 1) + Epsilon);
     
     float3 colour = (SceneTexture.Sample(PointSample, input.sceneUV).rgb) * RGB;
     

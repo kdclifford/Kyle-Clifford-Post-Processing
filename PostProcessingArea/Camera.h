@@ -57,6 +57,7 @@ public:
 	CMatrix4x4 ProjectionMatrix()      { UpdateMatrices(); return mProjectionMatrix;     }
 	CMatrix4x4 ViewProjectionMatrix()  { UpdateMatrices(); return mViewProjectionMatrix; }
 
+	//CMatrix4x4& SetWorldMatrix()       {                   return m_Matrix;}
 
 	//-------------------------------------
 	// Camera Picking

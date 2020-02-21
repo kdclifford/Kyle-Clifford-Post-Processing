@@ -1,4 +1,6 @@
 ﻿  Scene.cpp
-D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\Scene.cpp(1246,26): warning C4244:  '=': conversion from 'int' to 'float', possible loss of data
-D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\Scene.cpp(1247,26): warning C4244:  '=': conversion from 'int' to 'float', possible loss of data
+D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\Scene.cpp(431,77): warning C4305:  'argument': truncation from 'double' to 'float'
+D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\Scene.cpp(1322,26): warning C4244:  '=': conversion from 'int' to 'float', possible loss of data
+D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\Scene.cpp(1323,26): warning C4244:  '=': conversion from 'int' to 'float', possible loss of data
+D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\Scene.cpp(1384,81): warning C4305:  'argument': truncation from 'double' to 'float'
   PostProcessingArea.vcxproj -> D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\\PostProcessingArea.exe

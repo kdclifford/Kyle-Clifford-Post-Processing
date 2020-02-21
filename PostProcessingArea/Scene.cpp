@@ -48,6 +48,10 @@ enum class PostProcess
 	Invert,
 	UnderWater,
 
+
+
+
+	AmountOfPosts,
 };
 
 enum class PostProcessMode
@@ -58,11 +62,12 @@ enum class PostProcessMode
 };
 
 auto gCurrentPostProcess = PostProcess::None;
+auto gTvPostProcess = PostProcess::Spiral;
 std::vector<PostProcess> currentList;
 auto gCurrentPostProcessMode = PostProcessMode::Fullscreen;
 
 //********************
-void ImagePostProcessing(PostProcess postProcess, ID3D11RenderTargetView* target, ID3D11ShaderResourceView* resourse);
+void ImagePostProcessing(PostProcess postProcess, int Target, int ResourseOutput);
 
 // Constants controlling speed of movement/rotation (measured in units per second because we're using frame time)
 const float ROTATION_SPEED = 1.5f;  // Radians per second for rotation
@@ -147,6 +152,8 @@ ID3D11Resource*           gStarsDiffuseSpecularMap = nullptr;
 ID3D11ShaderResourceView* gStarsDiffuseSpecularMapSRV = nullptr;
 ID3D11Resource*           gGroundDiffuseSpecularMap = nullptr;
 ID3D11ShaderResourceView* gGroundDiffuseSpecularMapSRV = nullptr;
+ID3D11Resource*           gWoodDiffuseSpecularMap = nullptr;
+ID3D11ShaderResourceView* gWoodDiffuseSpecularMapSRV = nullptr;
 ID3D11Resource*           gCrateDiffuseSpecularMap = nullptr;
 ID3D11ShaderResourceView* gCrateDiffuseSpecularMapSRV = nullptr;
 ID3D11Resource*           gCubeDiffuseSpecularMap = nullptr;
@@ -247,6 +254,7 @@ bool InitGeometry()
 	// The function will fill in these pointers with usable data. The variables used here are globals found near the top of the file.
 	if (!LoadTexture("Stars.jpg",                &gStarsDiffuseSpecularMap,  &gStarsDiffuseSpecularMapSRV) ||
 		!LoadTexture("GrassDiffuseSpecular.dds", &gGroundDiffuseSpecularMap, &gGroundDiffuseSpecularMapSRV) ||
+		!LoadTexture("WoodDiffuseSpecular.dds", &gWoodDiffuseSpecularMap, &gWoodDiffuseSpecularMapSRV) ||
 		!LoadTexture("StoneDiffuseSpecular.dds", &gCubeDiffuseSpecularMap,   &gCubeDiffuseSpecularMapSRV) ||
 		!LoadTexture("Tv.dds", &gTvDiffuseSpecularMap,     &gTvDiffuseSpecularMapSRV) ||
 		!LoadTexture("CargoA.dds",               &gCrateDiffuseSpecularMap,  &gCrateDiffuseSpecularMapSRV) ||
@@ -408,12 +416,20 @@ bool InitScene()
 	gCube->SetPosition({ 42, 5, -10 });
 	gCube->SetRotation({ 0.0f, ToRadians(-110.0f), 0.0f });
 	gCube->SetScale(1.5f);
-	gTv->SetPosition({ 60, 5, -10 });
-	gTv->SetRotation({ 0.0f, ToRadians(-110.0f), 0.0f });
-	gTv->SetScale(1.5f);
+	gTv->SetPosition({ 60, 8, -10 });
+	gTv->SetRotation({ 0.0f, ToRadians( 180), 0.0f });
+	//gTv->SetScale(1.5f);
+	gTv->SetScale(CVector3( 2.0f, 1.5f, 1.5f));
 
-	gPortal->SetPosition({ 40, 20, 40 });
-	gPortal->SetRotation({ 0.0f, ToRadians(-180.0f), 0.0f });
+	CMatrix4x4 portalrotation = gTv->WorldMatrix() * gPortal->WorldMatrix();
+
+	gPortal->SetPosition({ gTv->Position() });
+	gPortal->SetRotation(CVector3(gTv->Rotation().x, gTv->Rotation().y, gTv->Rotation().z));
+	//gPortal->SetPosition({ gPortal->Position().x, gPortal->Position().y,  gPortal->Position().z -7.6f });*/
+
+	//gPortal->SetWorldMatrix(gTv->WorldMatrix());
+	gPortal->SetPosition(gTv->Position() + (gTv->WorldMatrix().GetZAxis() * 5.1));
+
 
 	gCrate->SetPosition({ -10, 0, 90 });
 	gCrate->SetRotation({ 0.0f, ToRadians(40.0f), 0.0f });
@@ -440,7 +456,7 @@ bool InitScene()
 
 	////--------------- Set up camera ---------------////
 
-	allModels.push_back(gPortal);
+	//allModels.push_back(gPortal);
 	allModels.push_back(gCube);
 	allModels.push_back(gTv);
 	allModels.push_back(gCrate);
@@ -573,6 +589,8 @@ void RenderSceneFromCamera(Camera* camera)
 	gD3DContext->PSSetShaderResources(0, 1, &gCubeDiffuseSpecularMapSRV); // First parameter must match texture slot number in the shader
 	gCube->Render();
 
+	gD3DContext->PSSetShaderResources(0, 1, &gWoodDiffuseSpecularMapSRV); // First parameter must match texture slot number in the shader
+	gTv->Render();
 	//************************************
 
 	
@@ -735,7 +753,7 @@ void SelectPostProcessShaderAndTextures(PostProcess postProcess)
 }
 
 // Perform a full-screen post process from "scene texture" to back buffer
-void ImagePostProcessing(PostProcess postProcess, ID3D11RenderTargetView* target, ID3D11ShaderResourceView* resourse)
+void ImagePostProcessing(PostProcess postProcess, int Target, int ResourseOutput)
 {
 	//// Select the back buffer to use for rendering. Not going to clear the back-buffer because we're going to overwrite it all
 	//gD3DContext->OMSetRenderTargets(1, &gBackBufferRenderTarget, gDepthStencil);
@@ -745,9 +763,9 @@ void ImagePostProcessing(PostProcess postProcess, ID3D11RenderTargetView* target
 	//gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[0]);
 	//gD3DContext->PSSetSamplers(0, 1, &gPointSampler); // Use point sampling (no bilinear, trilinear, mip-mapping etc. for most post-processes)
 
-	gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[3], gPortalDepthStencilView);
+	gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[Target], gPortalDepthStencilView);
 	//gD3DContext->PSSetShaderResources(1, 1, &gDepthShaderView);
-	gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[2]);
+	gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[ResourseOutput]);
 	gD3DContext->PSSetSamplers(0, 1, &gPointSampler); // Use point sampling (no bilinear, trilinear, mip-mapping etc. for most post-processes)
 
 
@@ -798,7 +816,7 @@ void ImagePostProcessing(PostProcess postProcess, ID3D11RenderTargetView* target
 
 	//ID3D11ShaderResourceView* nullSRV = nullptr;
 	//gD3DContext->PSSetShaderResources(0, 1, &nullSRV);
-	gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[2], gPortalDepthStencilView);
+	gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[ResourseOutput], gPortalDepthStencilView);
 	
 
 	//gD3DContext->PSSetShader(gCopyPostProcess, nullptr, 0);
@@ -1016,6 +1034,64 @@ void PolygonPostProcess(PostProcess postProcess, const std::array<CVector3, 4>& 
 //**************************
 
 
+bool PortalMove(CMatrix4x4 startMat)
+{
+	//int part = GetPartitionFromPt(startMat.Position());
+	CVector3 moveVec(0, 0, 0);
+	// For each portal of given partition
+	//TPortalIter itPortal = Partitions[part].Portals.begin();
+	
+		// Calculate world space portal entrance polygon
+		
+		//TransformPortalShape((*itPortal)->Shape, (*itPortal)->InMatrix, portalPoly);
+
+		// See if any intersection of movement and the two triangles in the portal polygon
+		
+	float dist = Length(gPortal->Position() - gCamera->Position());
+
+
+	//		// If the intersection was within the distance moved
+	//		if (dist < 10.0f)
+	//		{
+	//			// Update matrix to reflect movement and transfomation through portal
+	//			CMatrix4x4 endMat = startMat;
+	//			endMat.Move(moveVec);
+	//			endMat *= InverseAffine(gPortalCamera->WorldMatrix() * gPortalCamera->WorldMatrix());
+	//			return endMat;
+	//		}
+
+
+	//
+	//
+
+	//CMatrix4x4 endMat = startMat;
+	//endMat.Move(moveVec);
+	//return endMat;
+
+				// If the intersection was within the distance moved
+			if (dist < 10.0f)
+			{
+				// Update matrix to reflect movement and transfomation through portal
+				CMatrix4x4 endMat = startMat;
+				endMat.Move(moveVec);
+				endMat *= InverseAffine(gPortalCamera->WorldMatrix() * gPortalCamera->WorldMatrix());
+				return true;
+			}
+
+
+	
+	
+
+	CMatrix4x4 endMat = startMat;
+	endMat.Move(moveVec);
+	return false;
+
+
+}
+
+
+
+
 // Rendering the scene
 void RenderScene()
 {
@@ -1073,7 +1149,7 @@ void RenderScene()
 	// Render the scene for the portal
 	RenderSceneFromCamera(gPortalCamera);
 
-	ImagePostProcessing(PostProcess::GreyNoise, gSceneRenderTarget[3], gSceneTextureSRV[2]);
+	ImagePostProcessing(gTvPostProcess, 3, 2);
 
 	ID3D11ShaderResourceView* nullSRV = nullptr;
 	gD3DContext->PSSetShaderResources(0, 1, &nullSRV);
@@ -1252,6 +1328,7 @@ void UpdateScene(float frameTime)
 	if (KeyHeld(Mouse_RButton) && MoveNearestEntity != 0)
 	{
 		ModelSelected = MoveNearestEntity;
+		
 
 		CVector3 modelRotation = ModelSelected->Rotation();
 		if (KeyHeld(Key_Comma))
@@ -1297,19 +1374,39 @@ void UpdateScene(float frameTime)
 				
 			
 		}
+		if (ModelSelected == gTv)
+		{
+			gPortal->SetPosition({ gTv->Position()});
+			gPortal->SetRotation(CVector3( gTv->Rotation().x, gTv->Rotation().y, gTv->Rotation().z) );
+			//gPortal->SetPosition({ gPortal->Position().x, gPortal->Position().y,  gPortal->Position().z -7.6f });*/
+
+			//gPortal->SetWorldMatrix(gTv->WorldMatrix());
+			gPortal->SetPosition( gTv->Position() +  (gTv->WorldMatrix().GetZAxis() * 5.1));
+		}
 		MoveNearestEntity = 0;
 	}
 	MoveNearestEntity = 0;
 
 
+	bool newCamPos = PortalMove(gCamera->WorldMatrix());
+
+	if (newCamPos)
+	{
+		currentList.insert(currentList.begin(), gTvPostProcess);
+		gCamera->SetPosition(gPortalCamera->Position());
+		gCamera->SetRotation(gPortalCamera->Rotation());
+		gTvPostProcess = PostProcess(rand() % int(PostProcess::AmountOfPosts) + int(PostProcess::None));
+	}
 
 
 
+
+	//gCamera->SetRotation = newCamPos;
 
 	// Post processing settings - all data for post-processes is updated every frame whether in use or not (minimal cost)
 	
 	// Colour for tint shader
-	gPostProcessingConstants.tintColour = { 1.0f, 0.4f, 0.5f };
+	gPostProcessingConstants.tintColour = { 0.0f, 1.0f, 1.0f };
 
 	// Noise scaling adjusts how fine the grey noise is.
 	const float grainSize = 140; // Fineness of the noise grain

@@ -67,6 +67,14 @@ public:
     CVector3 GetEulerAngles();
     CVector3 GetScale() const  { return { Length(GetXAxis()), Length(GetYAxis()) , Length(GetZAxis()) }; }
 
+	// Move position (translation) of an affine transformation matrix by the given vector
+	void Move(const CVector3 v)
+	{
+		e30 += v.x;
+		e31 += v.y;
+		e32 += v.z;
+	}
+
 
 	// Post-multiply this matrix by the given one
     CMatrix4x4& operator*=(const CMatrix4x4& m);
