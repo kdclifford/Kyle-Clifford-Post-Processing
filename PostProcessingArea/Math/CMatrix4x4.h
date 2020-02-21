@@ -75,6 +75,13 @@ public:
 		e32 += v.z;
 	}
 
+	void SetPosition(const CVector3& p)
+	{
+		e30 = p.x;
+		e31 = p.y;
+		e32 = p.z;
+	}
+
 
 	// Post-multiply this matrix by the given one
     CMatrix4x4& operator*=(const CMatrix4x4& m);

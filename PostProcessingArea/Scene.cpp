@@ -62,7 +62,7 @@ enum class PostProcessMode
 };
 
 auto gCurrentPostProcess = PostProcess::None;
-auto gTvPostProcess = PostProcess::Spiral;
+auto gTvPostProcess = PostProcess(rand() % int(PostProcess::AmountOfPosts) + int(PostProcess::None));
 std::vector<PostProcess> currentList;
 auto gCurrentPostProcessMode = PostProcessMode::Fullscreen;
 
@@ -87,6 +87,8 @@ Mesh* gCubeMesh;
 Mesh* gCrateMesh;
 Mesh* gLightMesh;
 Mesh* gPortalMesh;
+Mesh* gWallMesh;
+Mesh* gWall2Mesh;
 
 Model* gStars;
 Model* gGround;
@@ -94,6 +96,8 @@ Model* gCube;
 Model* gTv;
 Model* gCrate;
 Model* gPortal;
+Model* gWall;
+Model* gWall2;
 
 Camera* gCamera;
 Camera* gPortalCamera;
@@ -160,6 +164,9 @@ ID3D11Resource*           gCubeDiffuseSpecularMap = nullptr;
 ID3D11ShaderResourceView* gCubeDiffuseSpecularMapSRV = nullptr;
 ID3D11Resource*           gTvDiffuseSpecularMap = nullptr;
 ID3D11ShaderResourceView* gTvDiffuseSpecularMapSRV = nullptr;
+ID3D11Resource*           gBrick = nullptr;
+ID3D11ShaderResourceView* gBrickSRV = nullptr;
+
 
 ID3D11Resource*           gLightDiffuseMap = nullptr;
 ID3D11ShaderResourceView* gLightDiffuseMapSRV = nullptr;
@@ -169,7 +176,7 @@ ID3D11ShaderResourceView* gLightDiffuseMapSRV = nullptr;
 //****************************
 // Post processing textures
 
-const int amountOfTextures = 4;
+const int amountOfTextures = 6;
 
 // This texture will have the scene renderered on it. Then the texture is then used for post-processing
 ID3D11Texture2D*          gSceneTexture[amountOfTextures]     ; // This object represents the memory used by the texture on the GPU
@@ -238,6 +245,8 @@ bool InitGeometry()
 		gCrateMesh  = new Mesh("CargoContainer.x");
 		gLightMesh  = new Mesh("Light.x");
 		gPortalMesh = new Mesh("Portal.x");
+		gWallMesh   = new Mesh("Wall1.x");
+		gWall2Mesh  = new Mesh("Wall2.x");
 	}
 	catch (std::runtime_error e)  // Constructors cannot return error messages so use exceptions to catch mesh errors (fairly standard approach this)
 	{
@@ -261,6 +270,7 @@ bool InitGeometry()
 		!LoadTexture("Flare.jpg",                &gLightDiffuseMap,          &gLightDiffuseMapSRV) ||
 		!LoadTexture("Noise.png",                &gNoiseMap,   &gNoiseMapSRV) ||
 		!LoadTexture("Burn.png",                 &gBurnMap,    &gBurnMapSRV) ||
+		!LoadTexture("brick1.jpg",               &gBrick,   &gBrickSRV) ||
 		!LoadTexture("Distort.png",              &gDistortMap, &gDistortMapSRV))
 	{
 		gLastError = "Error loading textures";
@@ -409,6 +419,8 @@ bool InitScene()
 	gTv     = new Model(gCubeMesh);
 	gCrate  = new Model(gCrateMesh);
 	gPortal = new Model(gPortalMesh);
+	gWall = new Model(gWallMesh);
+	gWall2 = new Model(gWall2Mesh);
 
 	ModelSelected = gCube;
 
@@ -431,11 +443,18 @@ bool InitScene()
 	gPortal->SetPosition(gTv->Position() + (gTv->WorldMatrix().GetZAxis() * 5.1));
 
 
+	gWall->SetPosition({ 0,20,170 });
+	gWall->SetScale(100.0f);
+
+	gWall2->SetPosition({ 0,50,0 });
+	gWall2->SetScale(100.0f);
+
 	gCrate->SetPosition({ -10, 0, 90 });
 	gCrate->SetRotation({ 0.0f, ToRadians(40.0f), 0.0f });
 	gCrate->SetScale(6.0f);
 	gStars->SetScale(8000.0f);
 
+	gGround->SetPosition({ 0, -20, 0 });
 
 	// Light set-up - using an array this time
 	for (int i = 0; i < NUM_LIGHTS; ++i)
@@ -460,6 +479,8 @@ bool InitScene()
 	allModels.push_back(gCube);
 	allModels.push_back(gTv);
 	allModels.push_back(gCrate);
+	allModels.push_back(gWall);
+	allModels.push_back(gWall2);
 	allModels.push_back(gLights[0].model);
 	allModels.push_back(gLights[1].model);
 
@@ -500,6 +521,8 @@ void ReleaseResources()
 	if (gNoiseMapSRV)                  gNoiseMapSRV->Release();
 	if (gNoiseMap)                     gNoiseMap->Release();
 
+	if (gBrickSRV)                     gBrickSRV->Release();
+	if (gBrick)                        gBrick->Release();
 	if (gLightDiffuseMapSRV)           gLightDiffuseMapSRV->Release();
 	if (gLightDiffuseMap)              gLightDiffuseMap->Release();
 	if (gCrateDiffuseSpecularMapSRV)   gCrateDiffuseSpecularMapSRV->Release();
@@ -532,6 +555,8 @@ void ReleaseResources()
 	delete gGround;  gGround = nullptr;
 	delete gStars;   gStars = nullptr;
 	delete gPortal;  gPortal = nullptr;
+	delete gWall;    gWall = nullptr;
+	delete gWall2;   gWall2 = nullptr;
 
 	delete gPortalMesh;  gPortalMesh = nullptr;
 	delete gLightMesh;   gLightMesh = nullptr;
@@ -539,6 +564,9 @@ void ReleaseResources()
 	delete gCubeMesh;    gCubeMesh = nullptr;
 	delete gGroundMesh;  gGroundMesh = nullptr;
 	delete gStarsMesh;   gStarsMesh = nullptr;
+	delete gWallMesh;    gWallMesh = nullptr;
+	delete gWall2Mesh;    gWall2Mesh = nullptr;
+
 }
 
 
@@ -591,6 +619,15 @@ void RenderSceneFromCamera(Camera* camera)
 
 	gD3DContext->PSSetShaderResources(0, 1, &gWoodDiffuseSpecularMapSRV); // First parameter must match texture slot number in the shader
 	gTv->Render();
+
+
+	gD3DContext->PSSetShaderResources(0, 1, &gBrickSRV); // First parameter must match texture slot number in the shader
+	gWall->Render();
+
+
+	gD3DContext->PSSetShaderResources(0, 1, &gBrickSRV); // First parameter must match texture slot number in the shader
+	gWall2->Render();
+
 	//************************************
 
 	
@@ -830,7 +867,7 @@ void FullScreenPostProcess(PostProcess postProcess)
 	//// Select the back buffer to use for rendering. Not going to clear the back-buffer because we're going to overwrite it all
 	//gD3DContext->OMSetRenderTargets(1, &gBackBufferRenderTarget, gDepthStencil);
 
-	//
+	
 	//// Give the pixel shader (post-processing shader) access to the scene texture 
 	//gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[0]);
 	//gD3DContext->PSSetSamplers(0, 1, &gPointSampler); // Use point sampling (no bilinear, trilinear, mip-mapping etc. for most post-processes)
@@ -999,6 +1036,10 @@ void PolygonPostProcess(PostProcess postProcess, const std::array<CVector3, 4>& 
 	// First perform a full-screen copy of the scene to back-buffer
 	FullScreenPostProcess(PostProcess::Copy);
 
+	//gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[1], gDepthStencil);
+	////gD3DContext->PSSetShaderResources(1, 1, &gDepthShaderView);
+	//gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[0]);
+	//gD3DContext->PSSetSamplers(0, 1, &gPointSampler); // Use point sampling (no bilinear, trilinear, mip-mapping etc. for most post-processes)
 
 	// Now perform a post-process of a portion of the scene to the back-buffer (overwriting some of the copy above)
 	// Note: The following code relies on many of the settings that were prepared in the FullScreenPostProcess call above, it only
@@ -1211,16 +1252,51 @@ void RenderScene()
 			else if (gCurrentPostProcessMode == PostProcessMode::Polygon)
 			{
 				// An array of four points in world space - a tapered square centred at the origin
-				const std::array<CVector3, 4> points = { { {0,-3,0}, {3,0,0}, {-3,0,0}, {0,3,0} } }; // C++ strangely needs an extra pair of {} here... only for std:array...
+				std::array<CVector3, 4> points[2]; // C++ strangely needs an extra pair of {} here... only for std:array...
+				points[0] = { { {-15,15,0}, {-15,-15,0}, {15,15,0}, {15,-15,0} } };
 
 				// A rotating matrix placing the model above in the scene
-				static CMatrix4x4 polyMatrix = MatrixTranslation({ 20, 15, 0 });
-				polyMatrix = MatrixRotationY(ToRadians(1)) * polyMatrix;
+				CMatrix4x4 polyMatrix[2];
+				polyMatrix[0] = MatrixTranslation({ 20, 15, 0 });
+				//polyMatrix = MatrixRotationY(ToRadians(1)) * polyMatrix;
+				//CMatrix4x4 polyMatrix;
+				//polyMatrix.GetPosition
+
+				polyMatrix[0].SetPosition(CVector3(gWall->Position().x, gWall->Position().y + 25, gWall->Position().z));
+
 
 				// Pass an array of 4 points and a matrix. Only supports 4 points.
-				PolygonPostProcess(gCurrentPostProcess, points, polyMatrix);
+				PolygonPostProcess(gCurrentPostProcess, points[0], polyMatrix[0]);
+
+				// An array of four points in world space - a tapered square centred at the origin
+				points[1] = { { {-15,15,0}, {-15,-15,0}, {15,15,0}, {15,-15,0} } }; // C++ strangely needs an extra pair of {} here... only for std:array...
+
+				// A rotating matrix placing the model above in the scene
+				polyMatrix[1] = MatrixTranslation({ 20, 15, 0 });
+				//polyMatrix = MatrixRotationY(ToRadians(1)) * polyMatrix;
+				//CMatrix4x4 polyMatrix;
+				//polyMatrix.GetPosition
+
+				polyMatrix[1].SetPosition(CVector3(gWall2->Position().x, gWall2->Position().y + 25, gWall2->Position().z));
+
+
+				// Pass an array of 4 points and a matrix. Only supports 4 points.
+				PolygonPostProcess(PostProcess::Spiral, points[1], polyMatrix[1]);
+
+
 
 			}
+
+				//if (currentList.size() % 2 == 0)
+				//{
+				//	gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[0]);
+				//	gD3DContext->PSSetSamplers(0, 1, &gPointSampler); // Use point sampling (no bilinear, trilinear, mip-mapping etc. for most post-processes)
+				//}
+				//else
+				//{
+				//	gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[1]);
+				//	gD3DContext->PSSetSamplers(0, 1, &gPointSampler); // Use point sampling (no bilinear, trilinear, mip-mapping etc. for most post-processes)
+				//}
 
 			// These lines unbind the scene texture from the pixel shader to stop DirectX issuing a warning when we try to render to it again next frame
 			ID3D11ShaderResourceView* nullSRV = nullptr;
@@ -1329,6 +1405,8 @@ void UpdateScene(float frameTime)
 	{
 		ModelSelected = MoveNearestEntity;
 		
+		MousePixel.x = GetMouseX();
+		MousePixel.y = GetMouseY();
 
 		CVector3 modelRotation = ModelSelected->Rotation();
 		if (KeyHeld(Key_Comma))
@@ -1364,7 +1442,7 @@ void UpdateScene(float frameTime)
 		}
 		
 		oldMouseWheelPos = newMouseWheelPos;
-		CVector3 newPos = camPos + (t * rayCast);
+		CVector3 newPos = camPos + t * rayCast;
 		if (MoveNearestEntity != 0)
 		{
 			//Move to newPos decided by mouse position
