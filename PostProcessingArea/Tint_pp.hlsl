@@ -35,7 +35,13 @@ float4 main(PostProcessingInput input) : SV_Target
     RGB.g = lerp(gTintColour.g, 0.0f, input.sceneUV.y);
     RGB.b = lerp(0.0f, gTintColour.b, input.sceneUV.y);
     
-	//RGB.r = 1;
+
+    //float3 topColour = (1.0f, 0.0f, 1.0f);
+    //float3 bottomColour = (0.0f, 1.0f, 0.0f);
+    
+    //RGB.r = lerp(topColour.r, bottomColour.r, input.sceneUV.y);
+    //RGB.g = lerp(topColour.g, bottomColour.g, input.sceneUV.y);
+    //RGB.b = lerp(topColour.b, bottomColour.b, input.sceneUV.y);
 
     
    	  // Based on work by Sam Hocevar and Emil Persson

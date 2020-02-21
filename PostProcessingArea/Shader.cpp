@@ -20,6 +20,7 @@ ID3D11VertexShader*   gBasicTransformVertexShader = nullptr;
 ID3D11VertexShader*   gPixelLightingVertexShader  = nullptr;
 ID3D11PixelShader*    gTintedTexturePixelShader   = nullptr;
 ID3D11PixelShader*    gPixelLightingPixelShader   = nullptr;
+ID3D11PixelShader*    gPortalPixelShader		  = nullptr;
 
 
 //*******************************
@@ -57,6 +58,7 @@ bool LoadShaders()
 	gPixelLightingVertexShader    = LoadVertexShader  ("PixelLighting_vs"   );
 	gTintedTexturePixelShader     = LoadPixelShader   ("TintedTexture_ps"   );
 	gPixelLightingPixelShader     = LoadPixelShader   ("PixelLighting_ps"   );
+	gPortalPixelShader = LoadPixelShader   ("Portal_ps"          );
 
 	//***************************************
 	//**** Post processing shaders
@@ -87,7 +89,8 @@ bool LoadShaders()
 		gBlurPostProcess			== nullptr || gBloomPostProcess			 == nullptr ||
 		gRetroPostProcess			== nullptr || gDepthPostProcess			 == nullptr ||
 		gCellPostProcess			== nullptr || gInvertPostProcess		 == nullptr ||
-		gUnderWaterPostProcess		== nullptr || g2DPolygonVertexShader     == nullptr)
+		gUnderWaterPostProcess		== nullptr || gPortalPixelShader		 == nullptr ||
+		g2DPolygonVertexShader     == nullptr)
 	{
 		gLastError = "Error loading shaders";
 		return false;
@@ -119,6 +122,7 @@ void ReleaseShaders()
 	if (gTintedTexturePixelShader)    gTintedTexturePixelShader  ->Release();
 	if (gPixelLightingVertexShader)   gPixelLightingVertexShader ->Release();
 	if (gBasicTransformVertexShader)  gBasicTransformVertexShader->Release();
+	if (gPortalPixelShader)			  gPortalPixelShader		 ->Release();
 }
 
 

@@ -62,7 +62,7 @@ std::vector<PostProcess> currentList;
 auto gCurrentPostProcessMode = PostProcessMode::Fullscreen;
 
 //********************
-
+void ImagePostProcessing(PostProcess postProcess, ID3D11RenderTargetView* target, ID3D11ShaderResourceView* resourse);
 
 // Constants controlling speed of movement/rotation (measured in units per second because we're using frame time)
 const float ROTATION_SPEED = 1.5f;  // Radians per second for rotation
@@ -81,13 +81,17 @@ Mesh* gGroundMesh;
 Mesh* gCubeMesh;
 Mesh* gCrateMesh;
 Mesh* gLightMesh;
+Mesh* gPortalMesh;
 
 Model* gStars;
 Model* gGround;
 Model* gCube;
+Model* gTv;
 Model* gCrate;
+Model* gPortal;
 
 Camera* gCamera;
+Camera* gPortalCamera;
 
 float zShift = 3.0f;
 
@@ -147,6 +151,8 @@ ID3D11Resource*           gCrateDiffuseSpecularMap = nullptr;
 ID3D11ShaderResourceView* gCrateDiffuseSpecularMapSRV = nullptr;
 ID3D11Resource*           gCubeDiffuseSpecularMap = nullptr;
 ID3D11ShaderResourceView* gCubeDiffuseSpecularMapSRV = nullptr;
+ID3D11Resource*           gTvDiffuseSpecularMap = nullptr;
+ID3D11ShaderResourceView* gTvDiffuseSpecularMapSRV = nullptr;
 
 ID3D11Resource*           gLightDiffuseMap = nullptr;
 ID3D11ShaderResourceView* gLightDiffuseMapSRV = nullptr;
@@ -156,12 +162,15 @@ ID3D11ShaderResourceView* gLightDiffuseMapSRV = nullptr;
 //****************************
 // Post processing textures
 
-const int amountOfTextures = 2;
+const int amountOfTextures = 4;
 
 // This texture will have the scene renderered on it. Then the texture is then used for post-processing
 ID3D11Texture2D*          gSceneTexture[amountOfTextures]     ; // This object represents the memory used by the texture on the GPU
 ID3D11RenderTargetView*   gSceneRenderTarget[amountOfTextures]; // This object is used when we want to render to the texture above
 ID3D11ShaderResourceView* gSceneTextureSRV[amountOfTextures]  ; // This object is used to give shaders access to the texture above (SRV = shader resource view)
+
+ID3D11Texture2D* gPortalDepthStencil = nullptr; // This object represents the memory used by the texture on the GPU
+ID3D11DepthStencilView* gPortalDepthStencilView = nullptr; // This object is used when we want to use the texture above as the depth buffer
 
 
 // Additional textures used for specific post-processes
@@ -177,6 +186,25 @@ ID3D11ShaderResourceView* gDistortMapSRV = nullptr;
 Model* MoveNearestEntity = 0;
 Model* ModelSelected = 0;
 CVector2 MousePixel;
+
+
+//portal stuff
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 //--------------------------------------------------------------------------------------
 // Initialise scene geometry, constant buffers and states
@@ -202,6 +230,7 @@ bool InitGeometry()
 		gCubeMesh   = new Mesh("Cube.x");
 		gCrateMesh  = new Mesh("CargoContainer.x");
 		gLightMesh  = new Mesh("Light.x");
+		gPortalMesh = new Mesh("Portal.x");
 	}
 	catch (std::runtime_error e)  // Constructors cannot return error messages so use exceptions to catch mesh errors (fairly standard approach this)
 	{
@@ -219,6 +248,7 @@ bool InitGeometry()
 	if (!LoadTexture("Stars.jpg",                &gStarsDiffuseSpecularMap,  &gStarsDiffuseSpecularMapSRV) ||
 		!LoadTexture("GrassDiffuseSpecular.dds", &gGroundDiffuseSpecularMap, &gGroundDiffuseSpecularMapSRV) ||
 		!LoadTexture("StoneDiffuseSpecular.dds", &gCubeDiffuseSpecularMap,   &gCubeDiffuseSpecularMapSRV) ||
+		!LoadTexture("Tv.dds", &gTvDiffuseSpecularMap,     &gTvDiffuseSpecularMapSRV) ||
 		!LoadTexture("CargoA.dds",               &gCrateDiffuseSpecularMap,  &gCrateDiffuseSpecularMapSRV) ||
 		!LoadTexture("Flare.jpg",                &gLightDiffuseMap,          &gLightDiffuseMapSRV) ||
 		!LoadTexture("Noise.png",                &gNoiseMap,   &gNoiseMapSRV) ||
@@ -315,6 +345,46 @@ bool InitGeometry()
 		}
 	}
 
+	//**** Create Portal Depth Buffer ****//
+
+// We also need a depth buffer to go with our portal
+//**** This depth buffer can be shared with any other portals of the same size
+	sceneTextureDesc = {};
+	sceneTextureDesc.Width = gViewportWidth;
+	sceneTextureDesc.Height = gViewportHeight;
+	sceneTextureDesc.MipLevels = 1;
+	sceneTextureDesc.ArraySize = 1;
+	sceneTextureDesc.Format = DXGI_FORMAT_D32_FLOAT; // Depth buffers contain a single float per pixel
+	sceneTextureDesc.SampleDesc.Count = 1;
+	sceneTextureDesc.SampleDesc.Quality = 0;
+	sceneTextureDesc.Usage = D3D11_USAGE_DEFAULT;
+	sceneTextureDesc.BindFlags = D3D10_BIND_DEPTH_STENCIL;
+	sceneTextureDesc.CPUAccessFlags = 0;
+	sceneTextureDesc.MiscFlags = 0;
+	if (FAILED(gD3DDevice->CreateTexture2D(&sceneTextureDesc, NULL, &gPortalDepthStencil)))
+	{
+		gLastError = "Error creating portal depth stencil texture";
+		return false;
+	}
+
+	// Create the depth stencil view, i.e. indicate that the texture just created is to be used as a depth buffer
+	D3D11_DEPTH_STENCIL_VIEW_DESC portalDescDSV = {};
+	portalDescDSV.Format = sceneTextureDesc.Format;
+	portalDescDSV.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+	portalDescDSV.Texture2D.MipSlice = 0;
+	portalDescDSV.Flags = 0;
+	if (FAILED(gD3DDevice->CreateDepthStencilView(gPortalDepthStencil, &portalDescDSV, &gPortalDepthStencilView)))
+	{
+		gLastError = "Error creating portal depth stencil view";
+		return false;
+	}
+
+
+	//*****************************//
+
+
+
+
 	return true;
 }
 
@@ -328,13 +398,23 @@ bool InitScene()
 	gStars  = new Model(gStarsMesh);
 	gGround = new Model(gGroundMesh);
 	gCube   = new Model(gCubeMesh);
+	gTv     = new Model(gCubeMesh);
 	gCrate  = new Model(gCrateMesh);
+	gPortal = new Model(gPortalMesh);
+
 	ModelSelected = gCube;
 
 	// Initial positions
 	gCube->SetPosition({ 42, 5, -10 });
 	gCube->SetRotation({ 0.0f, ToRadians(-110.0f), 0.0f });
 	gCube->SetScale(1.5f);
+	gTv->SetPosition({ 60, 5, -10 });
+	gTv->SetRotation({ 0.0f, ToRadians(-110.0f), 0.0f });
+	gTv->SetScale(1.5f);
+
+	gPortal->SetPosition({ 40, 20, 40 });
+	gPortal->SetRotation({ 0.0f, ToRadians(-180.0f), 0.0f });
+
 	gCrate->SetPosition({ -10, 0, 90 });
 	gCrate->SetRotation({ 0.0f, ToRadians(40.0f), 0.0f });
 	gCrate->SetScale(6.0f);
@@ -360,8 +440,9 @@ bool InitScene()
 
 	////--------------- Set up camera ---------------////
 
-
+	allModels.push_back(gPortal);
 	allModels.push_back(gCube);
+	allModels.push_back(gTv);
 	allModels.push_back(gCrate);
 	allModels.push_back(gLights[0].model);
 	allModels.push_back(gLights[1].model);
@@ -369,6 +450,12 @@ bool InitScene()
 	gCamera = new Camera();
 	gCamera->SetPosition({ 25, 18, -45 });
 	gCamera->SetRotation({ ToRadians(10.0f), ToRadians(7.0f), 0.0f });
+
+	//**** Portal camera is the view shown in the portal object's texture ****//
+	gPortalCamera = new Camera();
+	gPortalCamera->SetPosition({ 45, 70, 250 });
+	gPortalCamera->SetRotation({ ToRadians(20.0f), ToRadians(200.0f), 0 });
+
 
 	return true;
 }
@@ -386,6 +473,10 @@ void ReleaseResources()
 		if (gSceneTexture[i])                 gSceneTexture[i]->Release();
 	}
 
+	if (gPortalDepthStencilView)  gPortalDepthStencilView->Release();
+	if (gPortalDepthStencil)      gPortalDepthStencil->Release();
+
+
 	if (gDistortMapSRV)                gDistortMapSRV->Release();
 	if (gDistortMap)                   gDistortMap->Release();
 	if (gBurnMapSRV)                   gBurnMapSRV->Release();
@@ -399,6 +490,8 @@ void ReleaseResources()
 	if (gCrateDiffuseSpecularMap)      gCrateDiffuseSpecularMap->Release();
 	if (gCubeDiffuseSpecularMapSRV)    gCubeDiffuseSpecularMapSRV->Release();
 	if (gCubeDiffuseSpecularMap)       gCubeDiffuseSpecularMap->Release();
+	if (gTvDiffuseSpecularMapSRV)      gTvDiffuseSpecularMapSRV->Release();
+	if (gTvDiffuseSpecularMap)         gTvDiffuseSpecularMap->Release();
 	if (gGroundDiffuseSpecularMapSRV)  gGroundDiffuseSpecularMapSRV->Release();
 	if (gGroundDiffuseSpecularMap)     gGroundDiffuseSpecularMap->Release();
 	if (gStarsDiffuseSpecularMapSRV)   gStarsDiffuseSpecularMapSRV->Release();
@@ -416,11 +509,15 @@ void ReleaseResources()
 		delete gLights[i].model;  gLights[i].model = nullptr;
 	}
 	delete gCamera;  gCamera = nullptr;
+	delete gPortalCamera;  gPortalCamera = nullptr;
 	delete gCrate;   gCrate = nullptr;
 	delete gCube;    gCube = nullptr;
+	delete gTv;      gTv = nullptr;
 	delete gGround;  gGround = nullptr;
 	delete gStars;   gStars = nullptr;
+	delete gPortal;  gPortal = nullptr;
 
+	delete gPortalMesh;  gPortalMesh = nullptr;
 	delete gLightMesh;   gLightMesh = nullptr;
 	delete gCrateMesh;   gCrateMesh = nullptr;
 	delete gCubeMesh;    gCubeMesh = nullptr;
@@ -476,6 +573,26 @@ void RenderSceneFromCamera(Camera* camera)
 	gD3DContext->PSSetShaderResources(0, 1, &gCubeDiffuseSpecularMapSRV); // First parameter must match texture slot number in the shader
 	gCube->Render();
 
+	//************************************
+
+	
+	//ImagePostProcessing(PostProcess::Tint, gSceneRenderTarget[2], gSceneTextureSRV[2]);
+
+
+	// Select which shaders to use next
+	gD3DContext->VSSetShader(gPixelLightingVertexShader, nullptr, 0);
+	gD3DContext->PSSetShader(gPortalPixelShader, nullptr, 0);
+	gD3DContext->GSSetShader(nullptr, nullptr, 0);  // Switch off geometry shader when not using it (pass nullptr for first parameter)
+
+	// States - no blending, normal depth buffer and back-face culling (standard set-up for opaque models)
+	gD3DContext->OMSetBlendState(gNoBlendingState, nullptr, 0xffffff);
+	gD3DContext->OMSetDepthStencilState(gUseDepthBufferState, 0);
+	gD3DContext->RSSetState(gCullBackState);
+
+
+	gD3DContext->PSSetShaderResources(0, 1, &gTvDiffuseSpecularMapSRV);
+	gD3DContext->PSSetShaderResources(1, 1, &gSceneTextureSRV[3]); // First parameter must match texture slot number in the shader
+	gPortal->Render();
 
 	////--------------- Render sky ---------------////
 
@@ -617,6 +734,76 @@ void SelectPostProcessShaderAndTextures(PostProcess postProcess)
 
 }
 
+// Perform a full-screen post process from "scene texture" to back buffer
+void ImagePostProcessing(PostProcess postProcess, ID3D11RenderTargetView* target, ID3D11ShaderResourceView* resourse)
+{
+	//// Select the back buffer to use for rendering. Not going to clear the back-buffer because we're going to overwrite it all
+	//gD3DContext->OMSetRenderTargets(1, &gBackBufferRenderTarget, gDepthStencil);
+
+	//
+	//// Give the pixel shader (post-processing shader) access to the scene texture 
+	//gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[0]);
+	//gD3DContext->PSSetSamplers(0, 1, &gPointSampler); // Use point sampling (no bilinear, trilinear, mip-mapping etc. for most post-processes)
+
+	gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[3], gPortalDepthStencilView);
+	//gD3DContext->PSSetShaderResources(1, 1, &gDepthShaderView);
+	gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[2]);
+	gD3DContext->PSSetSamplers(0, 1, &gPointSampler); // Use point sampling (no bilinear, trilinear, mip-mapping etc. for most post-processes)
+
+
+	// Using special vertex shader that creates its own data for a 2D screen quad
+	gD3DContext->VSSetShader(g2DQuadVertexShader, nullptr, 0);
+	gD3DContext->GSSetShader(nullptr, nullptr, 0);  // Switch off geometry shader when not using it (pass nullptr for first parameter)
+
+
+	// States - no blending, don't write to depth buffer and ignore back-face culling
+	gD3DContext->OMSetBlendState(gNoBlendingState, nullptr, 0xffffff);
+	gD3DContext->OMSetDepthStencilState(gDepthReadOnlyState, 0);
+	gD3DContext->RSSetState(gCullNoneState);
+
+
+	// No need to set vertex/index buffer (see 2D quad vertex shader), just indicate that the quad will be created as a triangle strip
+	gD3DContext->IASetInputLayout(NULL); // No vertex data
+	gD3DContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+
+	
+	
+
+		// Select shader and textures needed for the required post-processes (helper function above)
+		SelectPostProcessShaderAndTextures(postProcess);
+
+		/*	UpdateConstantBuffer(gPostProcessingConstantBuffer, gPostProcessingConstants);
+			gD3DContext->PSSetConstantBuffers(1, 1, &gPostProcessingConstantBuffer);*/
+
+
+			//gD3DContext->Draw(4, 0);
+
+
+
+		// Set 2D area for full-screen post-processing (coordinates in 0->1 range)
+		gPostProcessingConstants.area2DTopLeft = { 0, 0 }; // Top-left of entire screen
+		gPostProcessingConstants.area2DSize = { 1, 1 }; // Full size of screen
+		gPostProcessingConstants.area2DDepth = 0;        // Depth buffer value for full screen is as close as possible
+
+
+		// Pass over the above post-processing settings (also the per-process settings prepared in UpdateScene function below)
+		UpdateConstantBuffer(gPostProcessingConstantBuffer, gPostProcessingConstants);
+		gD3DContext->VSSetConstantBuffers(1, 1, &gPostProcessingConstantBuffer);
+		gD3DContext->PSSetConstantBuffers(1, 1, &gPostProcessingConstantBuffer);
+
+
+		// Draw a quad
+		gD3DContext->Draw(4, 0);
+	
+
+	//ID3D11ShaderResourceView* nullSRV = nullptr;
+	//gD3DContext->PSSetShaderResources(0, 1, &nullSRV);
+	gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[2], gPortalDepthStencilView);
+	
+
+	//gD3DContext->PSSetShader(gCopyPostProcess, nullptr, 0);
+
+}
 
 
 // Perform a full-screen post process from "scene texture" to back buffer
@@ -712,7 +899,7 @@ void FullScreenPostProcess(PostProcess postProcess)
 		gD3DContext->PSSetSamplers(0, 1, &gPointSampler); // Use point sampling (no bilinear, trilinear, mip-mapping etc. for most post-processes)
 	}
 
-	gD3DContext->PSSetShader(gCopyPostProcess, nullptr, 0);
+	//gD3DContext->PSSetShader(gCopyPostProcess, nullptr, 0);
 
 
 	gD3DContext->Draw(4, 0);
@@ -863,6 +1050,35 @@ void RenderScene()
 
 
 
+	//// Portal scene rendering ////
+
+	// Set the portal texture and portal depth buffer as the targets for rendering
+	// The portal texture will later be used on models in the main scene
+	gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[2], gPortalDepthStencilView);
+
+	// Clear the portal texture to a fixed colour and the portal depth buffer to the far distance
+	gD3DContext->ClearRenderTargetView(gSceneRenderTarget[2], &gBackgroundColor.r);
+	gD3DContext->ClearDepthStencilView(gPortalDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
+
+	// Setup the viewport for the portal texture size
+	D3D11_VIEWPORT vp;
+	vp.Width = static_cast<FLOAT>(gViewportWidth);
+	vp.Height = static_cast<FLOAT>(gViewportHeight);
+	vp.MinDepth = 0.0f;
+	vp.MaxDepth = 1.0f;
+	vp.TopLeftX = 0;
+	vp.TopLeftY = 0;
+	gD3DContext->RSSetViewports(1, &vp);
+
+	// Render the scene for the portal
+	RenderSceneFromCamera(gPortalCamera);
+
+	ImagePostProcessing(PostProcess::GreyNoise, gSceneRenderTarget[3], gSceneTextureSRV[2]);
+
+	ID3D11ShaderResourceView* nullSRV = nullptr;
+	gD3DContext->PSSetShaderResources(0, 1, &nullSRV);
+
+
 	////--------------- Main scene rendering ---------------////
 
 	// Set the target for rendering and select the main depth buffer.
@@ -879,9 +1095,9 @@ void RenderScene()
 		gD3DContext->ClearRenderTargetView(gBackBufferRenderTarget, &gBackgroundColor.r);
 	}
 	gD3DContext->ClearDepthStencilView(gDepthStencil, D3D11_CLEAR_DEPTH, 1.0f, 0);
-
+	
 	// Setup the viewport to the size of the main window
-	D3D11_VIEWPORT vp;
+	
 	vp.Width = static_cast<FLOAT>(gViewportWidth);
 	vp.Height = static_cast<FLOAT>(gViewportHeight);
 	vp.MinDepth = 0.0f;
@@ -894,7 +1110,11 @@ void RenderScene()
 	RenderSceneFromCamera(gCamera);
 
 
+	
 	////--------------- Scene completion ---------------////
+	
+
+	
 
 	// Run any post-processing steps
 	if (!currentList.empty())
@@ -932,9 +1152,22 @@ void RenderScene()
 		}
 	}
 
+	
+	
+
+
 	// When drawing to the off-screen back buffer is complete, we "present" the image to the front buffer (the screen)
 	// Set first parameter to 1 to lock to vsync
 	gSwapChain->Present(lockFPS ? 1 : 0, 0);
+
+	//gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[2], gPortalDepthStencilView);
+	//gD3DContext->ClearRenderTargetView(gSceneRenderTarget[2], &gBackgroundColor.r);
+	//FullScreenPostProcess(PostProcess::Tint);
+
+	//ID3D11ShaderResourceView* nullSRV = nullptr;
+	//gD3DContext->PSSetShaderResources(0, 1, &nullSRV);
+
+	//gSwapChain->Present(lockFPS ? 1 : 0, 0);
 
 	CVector3 test4;
 	CVector2 entityPixel;
@@ -1005,8 +1238,8 @@ void UpdateScene(float frameTime)
 	if (KeyHit(Key_Numpad3))  gCurrentPostProcess = PostProcess::Retro, 			currentList.push_back(gCurrentPostProcess);
 	if (KeyHit(Key_Numpad4))  gCurrentPostProcess = PostProcess::UnderWater, 		currentList.push_back(gCurrentPostProcess);
 
-	if (KeyHeld(Key_Period))  zShift += 0.5f;
-	if (KeyHeld(Key_Comma))   zShift -= 0.5f;
+	if (KeyHeld(Key_Period) && !KeyHeld(Mouse_RButton))  zShift += 0.5f;
+	if (KeyHeld(Key_Comma) && !KeyHeld(Mouse_RButton))   zShift -= 0.5f;
 
 	// mouse stuff
 
@@ -1019,6 +1252,20 @@ void UpdateScene(float frameTime)
 	if (KeyHeld(Mouse_RButton) && MoveNearestEntity != 0)
 	{
 		ModelSelected = MoveNearestEntity;
+
+		CVector3 modelRotation = ModelSelected->Rotation();
+		if (KeyHeld(Key_Comma))
+		{
+			modelRotation.y += 1 * frameTime;
+			ModelSelected->SetRotation(modelRotation);
+		}
+		else if (KeyHeld(Key_Period))
+		{
+			modelRotation.y += -1 * frameTime;
+			ModelSelected->SetRotation(modelRotation);
+		}
+
+
 		int newMouseWheelPos = 0;
 
 		CVector3 worldpt = gCamera->WorldPtFromPixel(MousePixel, gViewportWidth, gViewportHeight); //Mouse world pos
@@ -1032,11 +1279,11 @@ void UpdateScene(float frameTime)
 		newMouseWheelPos = GetMouseWheel();
 		if (oldMouseWheelPos < newMouseWheelPos)
 		{
-			t += 10;
+			t += 500 * frameTime;
 		}
 		else if (oldMouseWheelPos > newMouseWheelPos)
 		{
-			t += -10;			
+			t += -500 * frameTime;
 		}
 		
 		oldMouseWheelPos = newMouseWheelPos;
