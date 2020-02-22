@@ -938,9 +938,8 @@ void FullScreenPostProcess(PostProcess postProcess)
 		gD3DContext->Draw(4, 0);
 	}
 
-	ID3D11ShaderResourceView* nullSRV = nullptr;
-	gD3DContext->PSSetShaderResources(0, 1, &nullSRV);
 	gD3DContext->OMSetRenderTargets(1, &gBackBufferRenderTarget, gDepthStencil);
+
 
 
 	if (currentList.size() % 2 == 0)
@@ -1036,6 +1035,11 @@ void PolygonPostProcess(PostProcess postProcess, const std::array<CVector3, 4>& 
 	// First perform a full-screen copy of the scene to back-buffer
 	FullScreenPostProcess(PostProcess::Copy);
 
+
+	gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[0], gDepthStencil);
+	//gD3DContext->PSSetShaderResources(1, 1, &gDepthShaderView);
+	gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[1]);
+	//gD3DContext->PSSetSamplers(0, 1, &gPointSampler); // Use point sampling (no bilinear, trilinear, mip-mapping etc. for most post-processes)
 	//gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[1], gDepthStencil);
 	////gD3DContext->PSSetShaderResources(1, 1, &gDepthShaderView);
 	//gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[0]);
@@ -1068,7 +1072,22 @@ void PolygonPostProcess(PostProcess postProcess, const std::array<CVector3, 4>& 
 
 	// Select the special 2D polygon post-processing vertex shader and draw the polygon
 	gD3DContext->VSSetShader(g2DPolygonVertexShader, nullptr, 0);
+
+	//gD3DContext->OMSetRenderTargets(1, &gBackBufferRenderTarget, gDepthStencil);
+
+	
+		//gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[1]);
+		//gD3DContext->PSSetSamplers(0, 1, &gPointSampler); // Use point sampling (no bilinear, trilinear, mip-mapping etc. for most post-processes)
+	
+		//gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[1]);
+		//gD3DContext->PSSetSamplers(0, 1, &gPointSampler); // Use point sampling (no bilinear, trilinear, mip-mapping etc. for most post-processes)
+	
+
 	gD3DContext->Draw(4, 0);
+
+	ID3D11ShaderResourceView* nullSRV = nullptr;
+	gD3DContext->PSSetShaderResources(0, 1, &nullSRV);
+	gD3DContext->PSSetShaderResources(1, 1, &nullSRV);
 }
 
 
@@ -1252,11 +1271,11 @@ void RenderScene()
 			else if (gCurrentPostProcessMode == PostProcessMode::Polygon)
 			{
 				// An array of four points in world space - a tapered square centred at the origin
-				std::array<CVector3, 4> points[2]; // C++ strangely needs an extra pair of {} here... only for std:array...
+				std::array<CVector3, 4> points[5]; // C++ strangely needs an extra pair of {} here... only for std:array...
 				points[0] = { { {-15,15,0}, {-15,-15,0}, {15,15,0}, {15,-15,0} } };
 
 				// A rotating matrix placing the model above in the scene
-				CMatrix4x4 polyMatrix[2];
+				CMatrix4x4 polyMatrix[5];
 				polyMatrix[0] = MatrixTranslation({ 20, 15, 0 });
 				//polyMatrix = MatrixRotationY(ToRadians(1)) * polyMatrix;
 				//CMatrix4x4 polyMatrix;
@@ -1266,9 +1285,10 @@ void RenderScene()
 
 
 				// Pass an array of 4 points and a matrix. Only supports 4 points.
-				PolygonPostProcess(gCurrentPostProcess, points[0], polyMatrix[0]);
+				
+				//**********************2
 
-				// An array of four points in world space - a tapered square centred at the origin
+				//// An array of four points in world space - a tapered square centred at the origin
 				points[1] = { { {-15,15,0}, {-15,-15,0}, {15,15,0}, {15,-15,0} } }; // C++ strangely needs an extra pair of {} here... only for std:array...
 
 				// A rotating matrix placing the model above in the scene
@@ -1277,11 +1297,57 @@ void RenderScene()
 				//CMatrix4x4 polyMatrix;
 				//polyMatrix.GetPosition
 
-				polyMatrix[1].SetPosition(CVector3(gWall2->Position().x, gWall2->Position().y + 25, gWall2->Position().z));
+				polyMatrix[1].SetPosition(CVector3(gWall2->Position().x + 15, gWall2->Position().y + 25, gWall2->Position().z));
+
+				//***********************3
+				points[2] = { { {-15,15,0}, {-15,-15,0}, {15,15,0}, {15,-15,0} } }; // C++ strangely needs an extra pair of {} here... only for std:array...
+
+				// A rotating matrix placing the model above in the scene
+				polyMatrix[2] = MatrixTranslation({ 20, 15, 0 });
+				//polyMatrix = MatrixRotationY(ToRadians(1)) * polyMatrix;
+				//CMatrix4x4 polyMatrix;
+				//polyMatrix.GetPosition
+
+				polyMatrix[2].SetPosition(CVector3(gWall2->Position().x - 15, gWall2->Position().y + 25, gWall2->Position().z));
+
+				//***********************4
+
+				points[3] = { { {-15,15,0}, {-15,-15,0}, {15,15,0}, {15,-15,0} } }; // C++ strangely needs an extra pair of {} here... only for std:array...
+
+				// A rotating matrix placing the model above in the scene
+				polyMatrix[3] = MatrixTranslation({ 20, 15, 0 });
+				//polyMatrix = MatrixRotationY(ToRadians(1)) * polyMatrix;
+				//CMatrix4x4 polyMatrix;
+				//polyMatrix.GetPosition
+
+				polyMatrix[3].SetPosition(CVector3(gWall2->Position().x - 40, gWall2->Position().y + 25, gWall2->Position().z));
+
+
+				//***********************5
+
+
+				points[4] = { { {-15,15,0}, {-15,-15,0}, {15,15,0}, {15,-15,0} } }; // C++ strangely needs an extra pair of {} here... only for std:array...
+
+				// A rotating matrix placing the model above in the scene
+				polyMatrix[4] = MatrixTranslation({ 20, 15, 0 });
+				//polyMatrix = MatrixRotationY(ToRadians(1)) * polyMatrix;
+				//CMatrix4x4 polyMatrix;
+				//polyMatrix.GetPosition
+
+				polyMatrix[4].SetPosition(CVector3(gWall2->Position().x + 40, gWall2->Position().y + 25, gWall2->Position().z));
+
+
 
 
 				// Pass an array of 4 points and a matrix. Only supports 4 points.
-				PolygonPostProcess(PostProcess::Spiral, points[1], polyMatrix[1]);
+				PolygonPostProcess(PostProcess::Retro, points[2], polyMatrix[2]);
+				PolygonPostProcess(PostProcess::Tint, points[1], polyMatrix[1]);
+
+				PolygonPostProcess(PostProcess::UnderWater, points[3], polyMatrix[3]);
+				PolygonPostProcess(PostProcess::Spiral, points[4], polyMatrix[4]);
+				PolygonPostProcess(gCurrentPostProcess, points[0], polyMatrix[0]);
+
+
 
 
 
@@ -1324,9 +1390,15 @@ void RenderScene()
 	CVector3 test4;
 	CVector2 entityPixel;
 
+	MousePixel.x = GetMouseX();
+	MousePixel.y = GetMouseY();
+
 	float nearestDistanceMove = 50.0f;
 	for (int i = 0; i < allModels.size(); i++)
 	{
+		MousePixel.x = GetMouseX();
+		MousePixel.y = GetMouseY();
+
 		test4 = gCamera->PixelFromWorldPt(allModels[i]->Position(), gViewportWidth, gViewportHeight);
 		entityPixel.x = test4.x;
 		entityPixel.y = test4.y;
@@ -1393,77 +1465,7 @@ void UpdateScene(float frameTime)
 	if (KeyHeld(Key_Period) && !KeyHeld(Mouse_RButton))  zShift += 0.5f;
 	if (KeyHeld(Key_Comma) && !KeyHeld(Mouse_RButton))   zShift -= 0.5f;
 
-	// mouse stuff
-
-	MousePixel.x = GetMouseX();
-	MousePixel.y = GetMouseY();
-
-
-
-	//Move entites witht the mouse in the scene
-	if (KeyHeld(Mouse_RButton) && MoveNearestEntity != 0)
-	{
-		ModelSelected = MoveNearestEntity;
-		
-		MousePixel.x = GetMouseX();
-		MousePixel.y = GetMouseY();
-
-		CVector3 modelRotation = ModelSelected->Rotation();
-		if (KeyHeld(Key_Comma))
-		{
-			modelRotation.y += 1 * frameTime;
-			ModelSelected->SetRotation(modelRotation);
-		}
-		else if (KeyHeld(Key_Period))
-		{
-			modelRotation.y += -1 * frameTime;
-			ModelSelected->SetRotation(modelRotation);
-		}
-
-
-		int newMouseWheelPos = 0;
-
-		CVector3 worldpt = gCamera->WorldPtFromPixel(MousePixel, gViewportWidth, gViewportHeight); //Mouse world pos
-		CVector3 rayCast = Normalise(worldpt - gCamera->Position());   //World point to camera direction 
-		CVector3 camPos = gCamera->Position(); //Main cam pos
-
-		//t = camPos.z / MoveNearestEntity->Position().z;
-
-		t =   Length( MoveNearestEntity->Position() - gCamera->Position());
-
-		newMouseWheelPos = GetMouseWheel();
-		if (oldMouseWheelPos < newMouseWheelPos)
-		{
-			t += 500 * frameTime;
-		}
-		else if (oldMouseWheelPos > newMouseWheelPos)
-		{
-			t += -500 * frameTime;
-		}
-		
-		oldMouseWheelPos = newMouseWheelPos;
-		CVector3 newPos = camPos + t * rayCast;
-		if (MoveNearestEntity != 0)
-		{
-			//Move to newPos decided by mouse position
-			
-			
-			MoveNearestEntity->SetPosition(newPos);
-				
-			
-		}
-		if (ModelSelected == gTv)
-		{
-			gPortal->SetPosition({ gTv->Position()});
-			gPortal->SetRotation(CVector3( gTv->Rotation().x, gTv->Rotation().y, gTv->Rotation().z) );
-			//gPortal->SetPosition({ gPortal->Position().x, gPortal->Position().y,  gPortal->Position().z -7.6f });*/
-
-			//gPortal->SetWorldMatrix(gTv->WorldMatrix());
-			gPortal->SetPosition( gTv->Position() +  (gTv->WorldMatrix().GetZAxis() * 5.1));
-		}
-		MoveNearestEntity = 0;
-	}
-	MoveNearestEntity = 0;
+	
 
 
 	bool newCamPos = PortalMove(gCamera->WorldMatrix());
@@ -1534,6 +1536,85 @@ void UpdateScene(float frameTime)
 
 	// Control of camera
 	gCamera->Control(frameTime, Key_Up, Key_Down, Key_Left, Key_Right, Key_W, Key_S, Key_A, Key_D);
+
+	// mouse stuff
+
+	MousePixel.x = GetMouseX();
+	MousePixel.y = GetMouseY();
+
+
+
+	//Move entites witht the mouse in the scene
+	if (KeyHeld(Mouse_RButton) && MoveNearestEntity != 0)
+	{
+		ModelSelected = MoveNearestEntity;
+
+		MousePixel.x = GetMouseX();
+		MousePixel.y = GetMouseY();
+
+		CVector3 modelRotation = ModelSelected->Rotation();
+		if (KeyHeld(Key_Comma))
+		{
+			modelRotation.y += 1 * frameTime;
+			ModelSelected->SetRotation(modelRotation);
+		}
+		else if (KeyHeld(Key_Period))
+		{
+			modelRotation.y += -1 * frameTime;
+			ModelSelected->SetRotation(modelRotation);
+		}
+
+
+		int newMouseWheelPos = 0;
+
+		CVector3 worldpt = gCamera->WorldPtFromPixel(MousePixel, gViewportWidth, gViewportHeight); //Mouse world pos
+		CVector3 rayCast = Normalise(worldpt - gCamera->Position());   //World point to camera direction 
+		CVector3 camPos = gCamera->Position(); //Main cam pos
+
+		//t = -camPos.y / rayCast.y;
+
+		t = Length(ModelSelected->Position() - gCamera->Position());
+
+		newMouseWheelPos = GetMouseWheel();
+		if (oldMouseWheelPos < newMouseWheelPos)
+		{
+			t += 500 * frameTime;
+		}
+		else if (oldMouseWheelPos > newMouseWheelPos)
+		{
+			t += -500 * frameTime;
+		}
+
+		oldMouseWheelPos = newMouseWheelPos;
+		CVector3 newPos = gCamera->Position() + t * rayCast;
+		if (ModelSelected != 0)
+		{
+			//Move to newPos decided by mouse position
+
+
+			ModelSelected->SetPosition(newPos);
+
+
+		}
+		if (ModelSelected == gTv)
+		{
+			gPortal->SetPosition({ gTv->Position() });
+			gPortal->SetRotation(CVector3(gTv->Rotation().x, gTv->Rotation().y, gTv->Rotation().z));
+			//gPortal->SetPosition({ gPortal->Position().x, gPortal->Position().y,  gPortal->Position().z -7.6f });*/
+
+			//gPortal->SetWorldMatrix(gTv->WorldMatrix());
+			gPortal->SetPosition(gTv->Position() + (gTv->WorldMatrix().GetZAxis() * 5.1));
+		}
+		MoveNearestEntity = 0;
+	}
+	MoveNearestEntity = 0;
+
+
+
+
+
+
+
 
 	// Toggle FPS limiting
 	if (KeyHit(Key_P))  lockFPS = !lockFPS;
