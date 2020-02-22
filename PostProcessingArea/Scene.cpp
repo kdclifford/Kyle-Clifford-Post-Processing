@@ -979,7 +979,7 @@ void ImagePostProcessing(PostProcess postProcess, int Target, int ResourseOutput
 
 
 // Perform a full-screen post process from "scene texture" to back buffer
-void FullScreenPostProcess(PostProcess postProcess)
+void FullScreenPostProcess(PostProcess postProcess, int pass)
 {
 	//// Select the back buffer to use for rendering. Not going to clear the back-buffer because we're going to overwrite it all
 	//gD3DContext->OMSetRenderTargets(1, &gBackBufferRenderTarget, gDepthStencil);
@@ -991,7 +991,7 @@ void FullScreenPostProcess(PostProcess postProcess)
 
 
 
-
+	
 	// Using special vertex shader that creates its own data for a 2D screen quad
 	gD3DContext->VSSetShader(g2DQuadVertexShader, nullptr, 0);
 	gD3DContext->GSSetShader(nullptr, nullptr, 0);  // Switch off geometry shader when not using it (pass nullptr for first parameter)
@@ -1008,11 +1008,11 @@ void FullScreenPostProcess(PostProcess postProcess)
 	gD3DContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
 
-	for (int i = 0; i < currentList.size(); i++)
-	{
+	
 		ID3D11ShaderResourceView* nullSRV = nullptr;
 		gD3DContext->PSSetShaderResources(0, 1, &nullSRV);
-		if (i % 2 == 0)
+	
+		if (pass % 2 == 0)
 		{
 			gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[1], gDepthStencil);
 			//gD3DContext->PSSetShaderResources(1, 1, &gDepthShaderView);
@@ -1022,14 +1022,16 @@ void FullScreenPostProcess(PostProcess postProcess)
 		else
 		{
 			gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[0], gDepthStencil);
-			//gD3DContext->PSSetShaderResources(1, 1, &gDepthShaderView);
+			////gD3DContext->PSSetShaderResources(1, 1, &gDepthShaderView);
 			gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[1]);
-			gD3DContext->PSSetSamplers(0, 1, &gPointSampler); // Use point sampling (no bilinear, trilinear, mip-mapping etc. for most post-processes)
+		gD3DContext->PSSetSamplers(0, 1, &gPointSampler); // Use point sampling (no bilinear, trilinear, mip-mapping etc. for most post-processes)
+
 		}
+		
 
 
 		// Select shader and textures needed for the required post-processes (helper function above)
-		SelectPostProcessShaderAndTextures(currentList[i]);
+		SelectPostProcessShaderAndTextures(postProcess);
 
 		/*	UpdateConstantBuffer(gPostProcessingConstantBuffer, gPostProcessingConstants);
 			gD3DContext->PSSetConstantBuffers(1, 1, &gPostProcessingConstantBuffer);*/
@@ -1053,7 +1055,7 @@ void FullScreenPostProcess(PostProcess postProcess)
 
 		// Draw a quad
 		gD3DContext->Draw(4, 0);
-	}
+	
 
 	gD3DContext->OMSetRenderTargets(1, &gBackBufferRenderTarget, gDepthStencil);
 
@@ -1083,7 +1085,7 @@ void FullScreenPostProcess(PostProcess postProcess)
 void AreaPostProcess(PostProcess postProcess, CVector3 worldPoint, CVector2 areaSize)
 {
 	// First perform a full-screen copy of the scene to back-buffer
-	FullScreenPostProcess(PostProcess::Copy);
+	FullScreenPostProcess(PostProcess::Copy, 1);
 	
 
 	// Now perform a post-process of a portion of the scene to the back-buffer (overwriting some of the copy above)
@@ -1150,7 +1152,7 @@ void AreaPostProcess(PostProcess postProcess, CVector3 worldPoint, CVector2 area
 void PolygonPostProcess(PostProcess postProcess, const std::array<CVector3, 4>& points, const CMatrix4x4& worldMatrix)
 {
 	// First perform a full-screen copy of the scene to back-buffer
-	FullScreenPostProcess(PostProcess::Copy);
+	FullScreenPostProcess(PostProcess::Copy,0);
 
 
 	gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[0], gDepthStencil);
@@ -1372,10 +1374,11 @@ void RenderScene()
 	// Run any post-processing steps
 	if (!currentList.empty())
 	{
-		
+		for (int i = 0; i < currentList.size(); i++)
+		{
 			if (gCurrentPostProcessMode == PostProcessMode::Fullscreen)
 			{
-				FullScreenPostProcess(PostProcess::None);
+				FullScreenPostProcess(currentList[i], i);
 			}
 
 			else if (gCurrentPostProcessMode == PostProcessMode::Area)
@@ -1404,15 +1407,15 @@ void RenderScene()
 
 				for (int j = 0; j < postProcessTing.size(); j++)
 				{
-						for (int i = 0; i < postProcessTing.size() - 1; i++)
+					for (int i = 0; i < postProcessTing.size() - 1; i++)
+					{
+						if (postProcessTing[i]->distance < postProcessTing[i + 1]->distance)
 						{
-							if (postProcessTing[i]->distance < postProcessTing[i + 1]->distance)
-							{
-								std::swap(postProcessTing[i], postProcessTing[i + 1]);
+							std::swap(postProcessTing[i], postProcessTing[i + 1]);
 
 
-							}
 						}
+					}
 				}
 
 
@@ -1435,21 +1438,21 @@ void RenderScene()
 
 			}
 
-				//if (currentList.size() % 2 == 0)
-				//{
-				//	gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[0]);
-				//	gD3DContext->PSSetSamplers(0, 1, &gPointSampler); // Use point sampling (no bilinear, trilinear, mip-mapping etc. for most post-processes)
-				//}
-				//else
-				//{
-				//	gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[1]);
-				//	gD3DContext->PSSetSamplers(0, 1, &gPointSampler); // Use point sampling (no bilinear, trilinear, mip-mapping etc. for most post-processes)
-				//}
+			//if (currentList.size() % 2 == 0)
+			//{
+			//	gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[0]);
+			//	gD3DContext->PSSetSamplers(0, 1, &gPointSampler); // Use point sampling (no bilinear, trilinear, mip-mapping etc. for most post-processes)
+			//}
+			//else
+			//{
+			//	gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[1]);
+			//	gD3DContext->PSSetSamplers(0, 1, &gPointSampler); // Use point sampling (no bilinear, trilinear, mip-mapping etc. for most post-processes)
+			//}
 
-			// These lines unbind the scene texture from the pixel shader to stop DirectX issuing a warning when we try to render to it again next frame
+		// These lines unbind the scene texture from the pixel shader to stop DirectX issuing a warning when we try to render to it again next frame
 			ID3D11ShaderResourceView* nullSRV = nullptr;
 			gD3DContext->PSSetShaderResources(0, 1, &nullSRV);
-		
+		}
 	}
 
 	
