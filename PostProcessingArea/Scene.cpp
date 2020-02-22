@@ -19,13 +19,17 @@
 #include "GraphicsHelpers.h" // Helper functions to unclutter the code here
 #include "ColourRGBA.h" 
 
+#include "imgui.h"
+#include "imgui_impl_win32.h"
+#include "imgui_impl_dx11.h"
+
 #include <array>
 #include <sstream>
 #include <memory>
 #include <algorithm>
 
 
-
+static ImVec4 color = ImVec4(114.0f / 255.0f, 144.0f / 255.0f, 154.0f / 255.0f, 200.0f / 255.0f);
 
 //--------------------------------------------------------------------------------------
 // Scene Data
@@ -118,30 +122,15 @@ struct Light
 };
 Light gLights[NUM_LIGHTS];
 
-struct Poly
+class Poly
 {
+	public:	
 	std::array<CVector3, 4> points; // C++ strangely needs an extra pair of {} here... only for std:array...
 				CMatrix4x4 polyMatrix;
 				PostProcess process;
 				float distance;
+				//CVector3 position;
 };
-
-struct PlayerComparator
-{
-	// Compare 2 Player objects using name
-	bool operator ()(const Poly& player1, const Poly& player2)
-	{
-		if (player1.distance < player2.distance)
-		{
-			return false;
-		}
-
-		return true;
-
-	}
-};
-
-
 
 
 std::vector<Poly*> postProcessTing;
@@ -504,7 +493,6 @@ void createPolys()
 	postProcessTing.push_back(forthPoly);
 	//***********************5
 
-
 	fifthPoly->points = { { {-15,15,0}, {-15,-15,0}, {15,15,0}, {15,-15,0} } }; // C++ strangely needs an extra pair of {} here... only for std:array...
 
 	// A rotating matrix placing the model above in the scene
@@ -513,8 +501,8 @@ void createPolys()
 	//CMatrix4x4 polyMatrix;
 	//polyMatrix.GetPosition
 
-	fifthPoly->polyMatrix.SetPosition(CVector3(gWall2->Position().x + 40, gWall2->Position().y + 25, gWall2->Position().z));
-	fifthPoly->process = PostProcess::Retro;
+	fifthPoly->polyMatrix.SetPosition(CVector3(gWall2->Position().x + 45, gWall2->Position().y + 25, gWall2->Position().z));
+	fifthPoly->process = PostProcess::CellShading;
 	postProcessTing.push_back(fifthPoly);
 }
 
@@ -1203,6 +1191,9 @@ void PolygonPostProcess(PostProcess postProcess, const std::array<CVector3, 4>& 
 	
 
 	gD3DContext->Draw(4, 0);
+	gD3DContext->OMSetRenderTargets(1, &gBackBufferRenderTarget, gDepthStencil);
+
+	gD3DContext->Draw(4, 0);
 
 	ID3D11ShaderResourceView* nullSRV = nullptr;
 	gD3DContext->PSSetShaderResources(0, 1, &nullSRV);
@@ -1274,6 +1265,17 @@ bool PortalMove(CMatrix4x4 startMat)
 // Rendering the scene
 void RenderScene()
 {
+	//IMGUI
+//*******************************
+// Prepare ImGUI for this frame
+//*******************************
+
+	ImGui_ImplDX11_NewFrame();
+	ImGui_ImplWin32_NewFrame();
+	ImGui::NewFrame();
+
+	//*******************************
+
 	//// Common settings ////
 
 
@@ -1380,8 +1382,8 @@ void RenderScene()
 			{
 				FullScreenPostProcess(currentList[i], i);
 			}
-
-			else if (gCurrentPostProcessMode == PostProcessMode::Area)
+		}
+			if (gCurrentPostProcessMode == PostProcessMode::Area)
 			{
 				// Pass a 3D point for the centre of the affected area and the size of the (rectangular) area in world units
 				AreaPostProcess(gCurrentPostProcess, ModelSelected->Position(), { 10, 10 });
@@ -1394,13 +1396,13 @@ void RenderScene()
 				for (int i = 0; i < postProcessTing.size(); i++)
 				{
 					//CVector3 polyPos = CVector3( postProcessTing[i]->points[0] + postProcessTing[i]->points[1] + postProcessTing[i]->points[2] + postProcessTing[i]->points[3]) / 12;
-					CVector3 polyPos = postProcessTing[i]->points[0];
+					CVector3 polyPos = postProcessTing[i]->polyMatrix.GetPosition();
 					float x = gCamera->Position().x - polyPos.x;
 					float y = gCamera->Position().y - polyPos.y;
 					float z = gCamera->Position().z - polyPos.z;
 
 
-					float dist = sqrt((x * x) + (y * y) + (z + z));
+					float dist = sqrt((x * x) + (y * y) + (z * z));
 
 					postProcessTing[i]->distance = dist;
 				}
@@ -1452,11 +1454,138 @@ void RenderScene()
 		// These lines unbind the scene texture from the pixel shader to stop DirectX issuing a warning when we try to render to it again next frame
 			ID3D11ShaderResourceView* nullSRV = nullptr;
 			gD3DContext->PSSetShaderResources(0, 1, &nullSRV);
-		}
+		
 	}
 
 	
+	//IMGUI
+	//*******************************
+	// Draw ImGUI interface
+	//*******************************
+	// You can draw ImGUI elements at any time between the frame preparation code at the top
+	// of this function, and the finalisation code below
+
+	//ImGui::n();
+
+	ImGui::Begin("Tint Colour", 0, ImGuiWindowFlags_AlwaysAutoResize);
+	//ImGui::SliderFloat("Colour", &gPostProcessingConstants.tintColour.x, 1, 20);
 	
+
+	ImGui::SliderFloat("Colour Red", &gPostProcessingConstants.tintColour.x, 0, 1);
+	ImGui::SliderFloat("Colour Green", &gPostProcessingConstants.tintColour.y, 0, 1);
+	ImGui::SliderFloat("Colour Blue", &gPostProcessingConstants.tintColour.z, 0, 1);
+
+	
+	if (ImGui::Button("Tint", ImVec2(100, 20)))
+	{
+		gCurrentPostProcess = PostProcess::Tint, currentList.push_back(gCurrentPostProcess);
+	}
+
+	if (ImGui::Button("Blur", ImVec2(100, 20)))
+	{
+		gCurrentPostProcess = PostProcess::Blur, currentList.push_back(gCurrentPostProcess);
+	}
+
+	// Generate a dummy default palette. The palette will persist and can be edited.
+	static bool saved_palette_init = true;
+	static ImVec4 saved_palette[32] = {};
+	if (saved_palette_init)
+	{
+		for (int n = 0; n < IM_ARRAYSIZE(saved_palette); n++)
+		{
+			ImGui::ColorConvertHSVtoRGB(n / 31.0f, 0.8f, 0.8f, saved_palette[n].x, saved_palette[n].y, saved_palette[n].z);
+			saved_palette[n].w = 1.0f; // Alpha
+		}
+		saved_palette_init = false;
+	}
+
+	static ImVec4 backup_colour;
+	bool open_popup = ImGui::ColorButton("MyColor##3b", color, 1);
+	ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x);
+	open_popup |= ImGui::Button("Palette");
+	if (open_popup)
+	{
+		ImGui::OpenPopup("mypicker");
+		backup_colour = color;
+	}
+	if (ImGui::BeginPopup("mypicker"))
+	{
+		ImGui::Text("Colour Picker");
+		ImGui::Separator();
+		ImGui::ColorPicker4("##picker", (float*)& color, 1 | ImGuiColorEditFlags_NoSidePreview | ImGuiColorEditFlags_NoSmallPreview);
+		ImGui::SameLine();
+
+		ImGui::BeginGroup(); // Lock X position
+		ImGui::Text("Current");
+		ImGui::ColorButton("##current", color, ImGuiColorEditFlags_NoPicker | ImGuiColorEditFlags_AlphaPreviewHalf, ImVec2(60, 40));
+		ImGui::Text("Previous");
+		if (ImGui::ColorButton("##previous", backup_colour, ImGuiColorEditFlags_NoPicker | ImGuiColorEditFlags_AlphaPreviewHalf, ImVec2(60, 40)))
+			color = backup_colour;
+		ImGui::Separator();
+		ImGui::Text("Palette");
+		for (int n = 0; n < IM_ARRAYSIZE(saved_palette); n++)
+		{
+			ImGui::PushID(n);
+			if ((n % 8) != 0)
+				ImGui::SameLine(0.0f, ImGui::GetStyle().ItemSpacing.y);
+			if (ImGui::ColorButton("##palette", saved_palette[n], ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_NoPicker | ImGuiColorEditFlags_NoTooltip, ImVec2(20, 20)))
+				color = ImVec4(saved_palette[n].x, saved_palette[n].y, saved_palette[n].z, color.w); // Preserve alpha!
+
+			// Allow user to drop colors into each palette entry
+			// (Note that ColorButton is already a drag source by default, unless using ImGuiColorEditFlags_NoDragDrop)
+			if (ImGui::BeginDragDropTarget())
+			{
+				if (const ImGuiPayload * payload = ImGui::AcceptDragDropPayload(IMGUI_PAYLOAD_TYPE_COLOR_3F))
+					memcpy((float*)& saved_palette[n], payload->Data, sizeof(float) * 3);
+				if (const ImGuiPayload * payload = ImGui::AcceptDragDropPayload(IMGUI_PAYLOAD_TYPE_COLOR_4F))
+					memcpy((float*)& saved_palette[n], payload->Data, sizeof(float) * 4);
+				ImGui::EndDragDropTarget();
+			}
+
+			ImGui::PopID();
+		}
+
+		gPostProcessingConstants.tintColour.x = color.x;
+		gPostProcessingConstants.tintColour.y = color.y;
+		gPostProcessingConstants.tintColour.z = color.z;
+		ImGui::EndGroup();
+		ImGui::EndPopup();
+	}
+
+
+
+	if (ImGui::Button("Tv Tint", ImVec2(100, 20)))
+	{
+		gTvPostProcess = PostProcess::Tint;
+	}
+
+	if (ImGui::Button("Tv Retro", ImVec2(100, 20)))
+	{
+		gTvPostProcess = PostProcess::Retro;
+	}
+	if (ImGui::Button("Tv Burn", ImVec2(100, 20)))
+	{
+		gTvPostProcess = PostProcess::Burn;
+	}
+
+
+
+
+
+	ImGui::End();
+	//*******************************
+
+
+
+	////--------------- Scene completion ---------------////
+
+	//IMGUI
+	//*******************************
+	// Finalise ImGUI for this frame
+	//*******************************
+	ImGui::Render();
+	gD3DContext->OMSetRenderTargets(1, &gBackBufferRenderTarget, nullptr);
+	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
 
 	// When drawing to the off-screen back buffer is complete, we "present" the image to the front buffer (the screen)
@@ -1571,7 +1700,7 @@ void UpdateScene(float frameTime)
 	// Post processing settings - all data for post-processes is updated every frame whether in use or not (minimal cost)
 	
 	// Colour for tint shader
-	gPostProcessingConstants.tintColour = { 0.0f, 1.0f, 1.0f };
+	//gPostProcessingConstants.tintColour = { 0.0f, 1.0f, 1.0f };
 
 	// Noise scaling adjusts how fine the grey noise is.
 	const float grainSize = 140; // Fineness of the noise grain

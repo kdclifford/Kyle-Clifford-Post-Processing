@@ -1,12 +1,12 @@
 ﻿  Scene.cpp
-D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\Scene.cpp(556,77): warning C4305:  'argument': truncation from 'double' to 'float'
-D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\Scene.cpp(1478,26): warning C4244:  '=': conversion from 'int' to 'float', possible loss of data
-D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\Scene.cpp(1479,26): warning C4244:  '=': conversion from 'int' to 'float', possible loss of data
-D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\Scene.cpp(1484,27): warning C4244:  '=': conversion from 'int' to 'float', possible loss of data
-D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\Scene.cpp(1485,27): warning C4244:  '=': conversion from 'int' to 'float', possible loss of data
-D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\Scene.cpp(1627,26): warning C4244:  '=': conversion from 'int' to 'float', possible loss of data
-D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\Scene.cpp(1628,26): warning C4244:  '=': conversion from 'int' to 'float', possible loss of data
-D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\Scene.cpp(1637,27): warning C4244:  '=': conversion from 'int' to 'float', possible loss of data
-D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\Scene.cpp(1638,27): warning C4244:  '=': conversion from 'int' to 'float', possible loss of data
-D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\Scene.cpp(1691,79): warning C4305:  'argument': truncation from 'double' to 'float'
+D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\Scene.cpp(544,77): warning C4305:  'argument': truncation from 'double' to 'float'
+D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\Scene.cpp(1607,26): warning C4244:  '=': conversion from 'int' to 'float', possible loss of data
+D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\Scene.cpp(1608,26): warning C4244:  '=': conversion from 'int' to 'float', possible loss of data
+D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\Scene.cpp(1613,27): warning C4244:  '=': conversion from 'int' to 'float', possible loss of data
+D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\Scene.cpp(1614,27): warning C4244:  '=': conversion from 'int' to 'float', possible loss of data
+D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\Scene.cpp(1756,26): warning C4244:  '=': conversion from 'int' to 'float', possible loss of data
+D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\Scene.cpp(1757,26): warning C4244:  '=': conversion from 'int' to 'float', possible loss of data
+D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\Scene.cpp(1766,27): warning C4244:  '=': conversion from 'int' to 'float', possible loss of data
+D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\Scene.cpp(1767,27): warning C4244:  '=': conversion from 'int' to 'float', possible loss of data
+D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\Scene.cpp(1820,79): warning C4305:  'argument': truncation from 'double' to 'float'
   PostProcessingArea.vcxproj -> D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\\PostProcessingArea.exe
