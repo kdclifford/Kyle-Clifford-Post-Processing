@@ -22,6 +22,9 @@
 #include <array>
 #include <sstream>
 #include <memory>
+#include <algorithm>
+
+
 
 
 //--------------------------------------------------------------------------------------
@@ -64,6 +67,7 @@ enum class PostProcessMode
 auto gCurrentPostProcess = PostProcess::None;
 auto gTvPostProcess = PostProcess(rand() % int(PostProcess::AmountOfPosts) + int(PostProcess::None));
 std::vector<PostProcess> currentList;
+//std::vector<PostProcess> polyList{ PostProcess::Tint, PostProcess::Spiral, PostProcess::Retro, PostProcess::Tint, PostProcess::UnderWater, };
 auto gCurrentPostProcessMode = PostProcessMode::Fullscreen;
 
 //********************
@@ -114,6 +118,33 @@ struct Light
 };
 Light gLights[NUM_LIGHTS];
 
+struct Poly
+{
+	std::array<CVector3, 4> points; // C++ strangely needs an extra pair of {} here... only for std:array...
+				CMatrix4x4 polyMatrix;
+				PostProcess process;
+				float distance;
+};
+
+struct PlayerComparator
+{
+	// Compare 2 Player objects using name
+	bool operator ()(const Poly& player1, const Poly& player2)
+	{
+		if (player1.distance < player2.distance)
+		{
+			return false;
+		}
+
+		return true;
+
+	}
+};
+
+
+
+
+std::vector<Poly*> postProcessTing;
 
 // Additional light information
 CVector3 gAmbientColour = { 0.3f, 0.3f, 0.4f }; // Background level of light (slightly bluish to match the far background, which is dark blue)
@@ -405,6 +436,88 @@ bool InitGeometry()
 
 	return true;
 }
+void createPolys()
+{
+	// An array of four points in world space - a tapered square centred at the origin
+
+	Poly* firstPoly = new Poly();
+	Poly* secondPoly = new Poly();
+	Poly* thirdPoly = new Poly();
+	Poly* forthPoly = new Poly();
+	Poly* fifthPoly = new Poly();
+
+	firstPoly->points = { { {-15,15,0}, {-15,-15,0}, {15,15,0}, {15,-15,0} } };
+
+	// A rotating matrix placing the model above in the scene
+	firstPoly->polyMatrix = MatrixTranslation({ 20, 15, 0 });
+	//polyMatrix = MatrixRotationY(ToRadians(1)) * polyMatrix;
+	//CMatrix4x4 polyMatrix;
+	//polyMatrix.GetPosition
+
+	firstPoly->polyMatrix.SetPosition(CVector3(gWall->Position().x, gWall->Position().y + 25, gWall->Position().z));
+	firstPoly->process = PostProcess::Burn;
+
+	postProcessTing.push_back(firstPoly);
+
+	// Pass an array of 4 points and a matrix. Only supports 4 points.
+
+	//**********************2
+
+	//// An array of four points in world space - a tapered square centred at the origin
+	secondPoly->points = { { {-15,15,0}, {-15,-15,0}, {15,15,0}, {15,-15,0} } }; // C++ strangely needs an extra pair of {} here... only for std:array...
+
+	// A rotating matrix placing the model above in the scene
+	secondPoly->polyMatrix = MatrixTranslation({ 20, 15, 0 });
+	//polyMatrix = MatrixRotationY(ToRadians(1)) * polyMatrix;
+	//CMatrix4x4 polyMatrix;
+	//polyMatrix.GetPosition
+
+	secondPoly->polyMatrix.SetPosition(CVector3(gWall2->Position().x + 15, gWall2->Position().y + 25, gWall2->Position().z));
+	secondPoly->process = PostProcess::UnderWater;
+
+	postProcessTing.push_back(secondPoly);
+	//***********************3
+	thirdPoly->points = { { {-15,15,0}, {-15,-15,0}, {15,15,0}, {15,-15,0} } }; // C++ strangely needs an extra pair of {} here... only for std:array...
+
+	// A rotating matrix placing the model above in the scene
+	thirdPoly->polyMatrix = MatrixTranslation({ 20, 15, 0 });
+	//polyMatrix = MatrixRotationY(ToRadians(1)) * polyMatrix;
+	//CMatrix4x4 polyMatrix;
+	//polyMatrix.GetPosition
+
+	thirdPoly->polyMatrix.SetPosition(CVector3(gWall2->Position().x - 15, gWall2->Position().y + 25, gWall2->Position().z));
+	thirdPoly->process = PostProcess::Retro;
+	postProcessTing.push_back(thirdPoly);
+	//***********************4
+
+	forthPoly->points = { { {-15,15,0}, {-15,-15,0}, {15,15,0}, {15,-15,0} } }; // C++ strangely needs an extra pair of {} here... only for std:array...
+
+	// A rotating matrix placing the model above in the scene
+	forthPoly->polyMatrix = MatrixTranslation({ 20, 15, 0 });
+	//polyMatrix = MatrixRotationY(ToRadians(1)) * polyMatrix;
+	//CMatrix4x4 polyMatrix;
+	//polyMatrix.GetPosition
+
+	forthPoly->polyMatrix.SetPosition(CVector3(gWall2->Position().x - 40, gWall2->Position().y + 25, gWall2->Position().z));
+
+	forthPoly->process = PostProcess::Spiral;
+	postProcessTing.push_back(forthPoly);
+	//***********************5
+
+
+	fifthPoly->points = { { {-15,15,0}, {-15,-15,0}, {15,15,0}, {15,-15,0} } }; // C++ strangely needs an extra pair of {} here... only for std:array...
+
+	// A rotating matrix placing the model above in the scene
+	fifthPoly->polyMatrix = MatrixTranslation({ 20, 15, 0 });
+	//polyMatrix = MatrixRotationY(ToRadians(1)) * polyMatrix;
+	//CMatrix4x4 polyMatrix;
+	//polyMatrix.GetPosition
+
+	fifthPoly->polyMatrix.SetPosition(CVector3(gWall2->Position().x + 40, gWall2->Position().y + 25, gWall2->Position().z));
+	fifthPoly->process = PostProcess::Retro;
+	postProcessTing.push_back(fifthPoly);
+}
+
 
 
 // Prepare the scene
@@ -492,6 +605,9 @@ bool InitScene()
 	gPortalCamera = new Camera();
 	gPortalCamera->SetPosition({ 45, 70, 250 });
 	gPortalCamera->SetRotation({ ToRadians(20.0f), ToRadians(200.0f), 0 });
+
+
+	createPolys();
 
 
 	return true;
@@ -794,6 +910,7 @@ void ImagePostProcessing(PostProcess postProcess, int Target, int ResourseOutput
 {
 	//// Select the back buffer to use for rendering. Not going to clear the back-buffer because we're going to overwrite it all
 	//gD3DContext->OMSetRenderTargets(1, &gBackBufferRenderTarget, gDepthStencil);
+	//FullScreenPostProcess(PostProcess::Copy);
 
 	//
 	//// Give the pixel shader (post-processing shader) access to the scene texture 
@@ -912,7 +1029,7 @@ void FullScreenPostProcess(PostProcess postProcess)
 
 
 		// Select shader and textures needed for the required post-processes (helper function above)
-		SelectPostProcessShaderAndTextures(postProcess);
+		SelectPostProcessShaderAndTextures(currentList[i]);
 
 		/*	UpdateConstantBuffer(gPostProcessingConstantBuffer, gPostProcessingConstants);
 			gD3DContext->PSSetConstantBuffers(1, 1, &gPostProcessingConstantBuffer);*/
@@ -942,16 +1059,16 @@ void FullScreenPostProcess(PostProcess postProcess)
 
 
 
-	if (currentList.size() % 2 == 0)
-	{
-		gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[0]);
-		gD3DContext->PSSetSamplers(0, 1, &gPointSampler); // Use point sampling (no bilinear, trilinear, mip-mapping etc. for most post-processes)
-	}
-	else
-	{
-		gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[1]);
-		gD3DContext->PSSetSamplers(0, 1, &gPointSampler); // Use point sampling (no bilinear, trilinear, mip-mapping etc. for most post-processes)
-	}
+	//if (currentList.size() % 2 == 0)
+	//{
+	//	gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[0]);
+	//	gD3DContext->PSSetSamplers(0, 1, &gPointSampler); // Use point sampling (no bilinear, trilinear, mip-mapping etc. for most post-processes)
+	//}
+	//else
+	//{
+	//	gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[1]);
+	//	gD3DContext->PSSetSamplers(0, 1, &gPointSampler); // Use point sampling (no bilinear, trilinear, mip-mapping etc. for most post-processes)
+	//}
 
 	//gD3DContext->PSSetShader(gCopyPostProcess, nullptr, 0);
 
@@ -1255,11 +1372,10 @@ void RenderScene()
 	// Run any post-processing steps
 	if (!currentList.empty())
 	{
-		for (int i = 0; i < currentList.size(); i++)
-		{
+		
 			if (gCurrentPostProcessMode == PostProcessMode::Fullscreen)
 			{
-				FullScreenPostProcess(currentList[i]);
+				FullScreenPostProcess(PostProcess::None);
 			}
 
 			else if (gCurrentPostProcessMode == PostProcessMode::Area)
@@ -1270,82 +1386,48 @@ void RenderScene()
 
 			else if (gCurrentPostProcessMode == PostProcessMode::Polygon)
 			{
-				// An array of four points in world space - a tapered square centred at the origin
-				std::array<CVector3, 4> points[5]; // C++ strangely needs an extra pair of {} here... only for std:array...
-				points[0] = { { {-15,15,0}, {-15,-15,0}, {15,15,0}, {15,-15,0} } };
+				// An array of four points in world space - a tapered square centred at the origin			
 
-				// A rotating matrix placing the model above in the scene
-				CMatrix4x4 polyMatrix[5];
-				polyMatrix[0] = MatrixTranslation({ 20, 15, 0 });
-				//polyMatrix = MatrixRotationY(ToRadians(1)) * polyMatrix;
-				//CMatrix4x4 polyMatrix;
-				//polyMatrix.GetPosition
-
-				polyMatrix[0].SetPosition(CVector3(gWall->Position().x, gWall->Position().y + 25, gWall->Position().z));
+				for (int i = 0; i < postProcessTing.size(); i++)
+				{
+					//CVector3 polyPos = CVector3( postProcessTing[i]->points[0] + postProcessTing[i]->points[1] + postProcessTing[i]->points[2] + postProcessTing[i]->points[3]) / 12;
+					CVector3 polyPos = postProcessTing[i]->points[0];
+					float x = gCamera->Position().x - polyPos.x;
+					float y = gCamera->Position().y - polyPos.y;
+					float z = gCamera->Position().z - polyPos.z;
 
 
-				// Pass an array of 4 points and a matrix. Only supports 4 points.
-				
-				//**********************2
+					float dist = sqrt((x * x) + (y * y) + (z + z));
 
-				//// An array of four points in world space - a tapered square centred at the origin
-				points[1] = { { {-15,15,0}, {-15,-15,0}, {15,15,0}, {15,-15,0} } }; // C++ strangely needs an extra pair of {} here... only for std:array...
+					postProcessTing[i]->distance = dist;
+				}
 
-				// A rotating matrix placing the model above in the scene
-				polyMatrix[1] = MatrixTranslation({ 20, 15, 0 });
-				//polyMatrix = MatrixRotationY(ToRadians(1)) * polyMatrix;
-				//CMatrix4x4 polyMatrix;
-				//polyMatrix.GetPosition
-
-				polyMatrix[1].SetPosition(CVector3(gWall2->Position().x + 15, gWall2->Position().y + 25, gWall2->Position().z));
-
-				//***********************3
-				points[2] = { { {-15,15,0}, {-15,-15,0}, {15,15,0}, {15,-15,0} } }; // C++ strangely needs an extra pair of {} here... only for std:array...
-
-				// A rotating matrix placing the model above in the scene
-				polyMatrix[2] = MatrixTranslation({ 20, 15, 0 });
-				//polyMatrix = MatrixRotationY(ToRadians(1)) * polyMatrix;
-				//CMatrix4x4 polyMatrix;
-				//polyMatrix.GetPosition
-
-				polyMatrix[2].SetPosition(CVector3(gWall2->Position().x - 15, gWall2->Position().y + 25, gWall2->Position().z));
-
-				//***********************4
-
-				points[3] = { { {-15,15,0}, {-15,-15,0}, {15,15,0}, {15,-15,0} } }; // C++ strangely needs an extra pair of {} here... only for std:array...
-
-				// A rotating matrix placing the model above in the scene
-				polyMatrix[3] = MatrixTranslation({ 20, 15, 0 });
-				//polyMatrix = MatrixRotationY(ToRadians(1)) * polyMatrix;
-				//CMatrix4x4 polyMatrix;
-				//polyMatrix.GetPosition
-
-				polyMatrix[3].SetPosition(CVector3(gWall2->Position().x - 40, gWall2->Position().y + 25, gWall2->Position().z));
+				for (int j = 0; j < postProcessTing.size(); j++)
+				{
+						for (int i = 0; i < postProcessTing.size() - 1; i++)
+						{
+							if (postProcessTing[i]->distance < postProcessTing[i + 1]->distance)
+							{
+								std::swap(postProcessTing[i], postProcessTing[i + 1]);
 
 
-				//***********************5
+							}
+						}
+				}
 
 
-				points[4] = { { {-15,15,0}, {-15,-15,0}, {15,15,0}, {15,-15,0} } }; // C++ strangely needs an extra pair of {} here... only for std:array...
+				for (int i = 0; i < postProcessTing.size(); i++)
+				{
+					PolygonPostProcess(postProcessTing[i]->process, postProcessTing[i]->points, postProcessTing[i]->polyMatrix);
+				}
 
-				// A rotating matrix placing the model above in the scene
-				polyMatrix[4] = MatrixTranslation({ 20, 15, 0 });
-				//polyMatrix = MatrixRotationY(ToRadians(1)) * polyMatrix;
-				//CMatrix4x4 polyMatrix;
-				//polyMatrix.GetPosition
+				//// Pass an array of 4 points and a matrix. Only supports 4 points.
+				//PolygonPostProcess(PostProcess::Retro, points[2], polyMatrix[2]);
+				//PolygonPostProcess(PostProcess::Tint, points[1], polyMatrix[1]);
 
-				polyMatrix[4].SetPosition(CVector3(gWall2->Position().x + 40, gWall2->Position().y + 25, gWall2->Position().z));
-
-
-
-
-				// Pass an array of 4 points and a matrix. Only supports 4 points.
-				PolygonPostProcess(PostProcess::Retro, points[2], polyMatrix[2]);
-				PolygonPostProcess(PostProcess::Tint, points[1], polyMatrix[1]);
-
-				PolygonPostProcess(PostProcess::UnderWater, points[3], polyMatrix[3]);
-				PolygonPostProcess(PostProcess::Spiral, points[4], polyMatrix[4]);
-				PolygonPostProcess(gCurrentPostProcess, points[0], polyMatrix[0]);
+				//PolygonPostProcess(PostProcess::UnderWater, points[3], polyMatrix[3]);
+				//PolygonPostProcess(PostProcess::Spiral, points[4], polyMatrix[4]);
+				//PolygonPostProcess(PostProcess::Tint, points[0], polyMatrix[0]);
 
 
 
@@ -1367,7 +1449,7 @@ void RenderScene()
 			// These lines unbind the scene texture from the pixel shader to stop DirectX issuing a warning when we try to render to it again next frame
 			ID3D11ShaderResourceView* nullSRV = nullptr;
 			gD3DContext->PSSetShaderResources(0, 1, &nullSRV);
-		}
+		
 	}
 
 	
