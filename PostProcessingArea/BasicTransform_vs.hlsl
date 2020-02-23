@@ -27,7 +27,13 @@ SimplePixelShaderInput main(BasicVertex modelVertex)
     output.projectedPosition = mul(gProjectionMatrix, viewPosition);
 
     // Pass texture coordinates (UVs) on to the pixel shader, the vertex shader doesn't need them
-    output.uv = modelVertex.uv;
+   // output.uv = modelVertex.uv;
+    
+    //output.projectedPosition = modelPosition;
+    //float2 ctrPt = float2(0.5f, 0.5f);
+    //output.uv = modelVertex.uv + 0.1f - ctrPt;
+
+    
 
     return output; // Ouput data sent down the pipeline (to the pixel shader)
 }

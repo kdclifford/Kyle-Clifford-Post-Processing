@@ -214,7 +214,8 @@ ID3D11Resource*           gBurnMap = nullptr;
 ID3D11ShaderResourceView* gBurnMapSRV = nullptr;
 ID3D11Resource*           gDistortMap = nullptr;
 ID3D11ShaderResourceView* gDistortMapSRV = nullptr;
-
+ID3D11Resource*           gMovie = nullptr;
+ID3D11ShaderResourceView* gMovieSRV = nullptr;
 
 //****************************
 Model* MoveNearestEntity = 0;
@@ -290,6 +291,7 @@ bool InitGeometry()
 		!LoadTexture("Flare.jpg",                &gLightDiffuseMap,          &gLightDiffuseMapSRV) ||
 		!LoadTexture("Noise.png",                &gNoiseMap,   &gNoiseMapSRV) ||
 		!LoadTexture("Burn.png",                 &gBurnMap,    &gBurnMapSRV) ||
+		!LoadTexture("HalftoneDots16x16.dds",              &gMovie,      &gMovieSRV) ||
 		!LoadTexture("brick1.jpg",               &gBrick,   &gBrickSRV) ||
 		!LoadTexture("Distort.png",              &gDistortMap, &gDistortMapSRV))
 	{
@@ -297,7 +299,7 @@ bool InitGeometry()
 		return false;
 	}
 
-
+	
 	// Create all filtering modes, blending modes etc. used by the app (see State.cpp/.h)
 	if (!CreateStates())
 	{
@@ -624,6 +626,9 @@ void ReleaseResources()
 	if (gBurnMap)                      gBurnMap->Release();
 	if (gNoiseMapSRV)                  gNoiseMapSRV->Release();
 	if (gNoiseMap)                     gNoiseMap->Release();
+	if (gMovieSRV)                     gMovieSRV->Release();
+	if (gMovie)                        gMovie->Release();
+
 
 	if (gBrickSRV)                     gBrickSRV->Release();
 	if (gBrick)                        gBrick->Release();
@@ -733,9 +738,6 @@ void RenderSceneFromCamera(Camera* camera)
 	gWall2->Render();
 
 	//************************************
-
-	
-	//ImagePostProcessing(PostProcess::Tint, gSceneRenderTarget[2], gSceneTextureSRV[2]);
 
 
 	// Select which shaders to use next
@@ -873,6 +875,8 @@ void SelectPostProcessShaderAndTextures(PostProcess postProcess)
 	else if (postProcess == PostProcess::Depth)
 	{
 		gD3DContext->PSSetShader(gDepthPostProcess, nullptr, 0);
+		gD3DContext->PSSetShaderResources(1, 1, &gMovieSRV);
+		gD3DContext->PSSetSamplers(1, 1, &gTrilinearSampler);
 	}
 
 	else if (postProcess == PostProcess::CellShading)
@@ -1330,7 +1334,7 @@ void RenderScene()
 	// Render the scene for the portal
 	RenderSceneFromCamera(gPortalCamera);
 
-	ImagePostProcessing(gTvPostProcess, 3, 2);
+	//ImagePostProcessing(gTvPostProcess, 3, 2);
 
 	ID3D11ShaderResourceView* nullSRV = nullptr;
 	gD3DContext->PSSetShaderResources(0, 1, &nullSRV);
@@ -1366,7 +1370,7 @@ void RenderScene()
 	// Render the scene from the main camera
 	RenderSceneFromCamera(gCamera);
 
-
+	
 	
 	////--------------- Scene completion ---------------////
 	
@@ -1439,7 +1443,7 @@ void RenderScene()
 
 
 			}
-
+			
 			//if (currentList.size() % 2 == 0)
 			//{
 			//	gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[0]);
@@ -1457,7 +1461,7 @@ void RenderScene()
 		
 	}
 
-	
+	ImagePostProcessing(gTvPostProcess, 3, 2);
 	//IMGUI
 	//*******************************
 	// Draw ImGUI interface
