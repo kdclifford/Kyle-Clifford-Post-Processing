@@ -31,34 +31,34 @@ float4 main(PostProcessingInput input) : SV_Target
 {
  
                                       
- //   //PostProcessingInput output;
+    //PostProcessingInput output;
                                       
- //   // Extract diffuse material colour for this pixel from a texture. Using alpha channel here so use float4
- //   float4 diffuseMapColour = SceneTexture.Sample(TexSampler, input.uv);
+    // Extract diffuse material colour for this pixel from a texture. Using alpha channel here so use float4
+    float4 diffuseMapColour = SceneTexture.Sample(TexSampler, input.sceneUV);
 
- //   float depthAdjust = diffuseMapColour.a;
+    float depthAdjust = diffuseMapColour.a;
     
- //   float pixelDepth = (input.projectedPosition.z * input.projectedPosition.w - depthAdjust) / (input.projectedPosition.w - depthAdjust);
-    
-    
-    
- //   //output.depth = pixelDepth;
+    float pixelDepth = (input.projectedPosition.z * input.projectedPosition.w - depthAdjust) / (input.projectedPosition.w - depthAdjust);
     
     
- //   float2 viewportUV = input.projectedPosition.xy;
     
- //   viewportUV.x /= gViewportWidth;
- //   viewportUV.y /= gViewportHeight;
-    
- //   float viewportDepth = DepthMap.Sample(PointSample, viewportUV);
-    
- //   viewportDepth *= input.projectedPosition.w;
- //   pixelDepth *= input.projectedPosition.w;
-    
- //   float depthDiff = viewportDepth - pixelDepth;
+    //output.depth = pixelDepth;
     
     
- //   if (depthDiff < 0.0f)
+    float2 viewportUV = input.projectedPosition.xy;
+    
+    viewportUV.x /= gViewportWidth;
+    viewportUV.y /= gViewportHeight;
+    
+    float4 viewportDepth = DepthMap.Sample(PointSample, input.sceneUV);
+    
+    //viewportDepth *= input.projectedPosition.w;
+    pixelDepth *= input.projectedPosition.w;
+    
+    float depthDiff = viewportDepth - pixelDepth;
+    
+    
+ //   if (depthDiff > 0.99f)
  //   {
  //       discard;
  //   }
@@ -66,11 +66,11 @@ float4 main(PostProcessingInput input) : SV_Target
  // //  float depthFade = saturate(depthDiff / 0.025f);
     
 	//// Combine texture alpha with particle alpha
- //   float4 Ncolour = diffuseMapColour;
+    float4 Ncolour = viewportDepth;
  //  // input.alpha * depthFade;
- //   Ncolour.a = 1.0f; // If you increase the number of particles then you might want to reduce the 1.0f here to make them more transparent
+    Ncolour.a = 1.0f; // If you increase the number of particles then you might want to reduce the 1.0f here to make them more transparent
 
- //   return Ncolour;
+    return viewportDepth;
     
     //int nsamples = 100;
     //float BlurStart = 0.5f;
@@ -97,45 +97,45 @@ float4 main(PostProcessingInput input) : SV_Target
     //float newA = max(origTex.a, blurred.a);
     //return float4(newC.rgb, newA);
     
-    float Threshhold = 30.7f;
-    float size = 1.0 / 100;
-    float2 Pbase = input.sceneUV - fmod(input.sceneUV, size.xx);
-    float2 PCenter = Pbase + (size / 2.0).xx;
-    float2 st = (input.sceneUV - Pbase) / size;
-    float4 c1 = (float4) 0;
-    float4 c2 = (float4) 0;
-    float4 invOff = float4((1 - float3(0.0f, 0.5f, 0.3f)), 1);
-    if (st.x > st.y)
-    {
-        c1 = invOff;
-    }
-    float threshholdB = 1.0 - Threshhold;
-    if (st.x > threshholdB)
-    {
-        c2 = c1;
-    }
-    if (st.y > threshholdB)
-    {
-        c2 = c1;
-    }
-    float4 cBottom = c2;
-    c1 = (float4) 0;
-    c2 = (float4) 0;
-    if (st.x > st.y)
-    {
-        c1 = invOff;
-    }
-    if (st.x < Threshhold)
-    {
-        c2 = c1;
-    }
-    if (st.y < Threshhold)
-    {
-        c2 = c1;
-    }
-    float4 cTop = c2;
-    float4 tileColor = SceneTexture.Sample(PointSample, PCenter);
-    float4 result = tileColor + cTop - cBottom;
-    return result;
+    //float Threshhold = 30.7f;
+    //float size = 1.0 / 100;
+    //float2 Pbase = input.sceneUV - fmod(input.sceneUV, size.xx);
+    //float2 PCenter = Pbase + (size / 2.0).xx;
+    //float2 st = (input.sceneUV - Pbase) / size;
+    //float4 c1 = (float4) 0;
+    //float4 c2 = (float4) 0;
+    //float4 invOff = float4((1 - float3(0.0f, 0.5f, 0.3f)), 1);
+    //if (st.x > st.y)
+    //{
+    //    c1 = invOff;
+    //}
+    //float threshholdB = 1.0 - Threshhold;
+    //if (st.x > threshholdB)
+    //{
+    //    c2 = c1;
+    //}
+    //if (st.y > threshholdB)
+    //{
+    //    c2 = c1;
+    //}
+    //float4 cBottom = c2;
+    //c1 = (float4) 0;
+    //c2 = (float4) 0;
+    //if (st.x > st.y)
+    //{
+    //    c1 = invOff;
+    //}
+    //if (st.x < Threshhold)
+    //{
+    //    c2 = c1;
+    //}
+    //if (st.y < Threshhold)
+    //{
+    //    c2 = c1;
+    //}
+    //float4 cTop = c2;
+    //float4 tileColor = SceneTexture.Sample(PointSample, PCenter);
+    //float4 result = tileColor + cTop - cBottom;
+    //return result;
     
 }

@@ -21,7 +21,7 @@ ID3D11VertexShader*   gPixelLightingVertexShader  = nullptr;
 ID3D11PixelShader*    gTintedTexturePixelShader   = nullptr;
 ID3D11PixelShader*    gPixelLightingPixelShader   = nullptr;
 ID3D11PixelShader*    gPortalPixelShader		  = nullptr;
-
+ID3D11PixelShader*  gDepthOnlyPixelShader  = nullptr;
 
 //*******************************
 //**** Post-processing shader DirectX objects
@@ -59,6 +59,7 @@ bool LoadShaders()
 	gTintedTexturePixelShader     = LoadPixelShader   ("TintedTexture_ps"   );
 	gPixelLightingPixelShader     = LoadPixelShader   ("PixelLighting_ps"   );
 	gPortalPixelShader = LoadPixelShader   ("Portal_ps"          );
+	gDepthOnlyPixelShader = LoadPixelShader("DepthOnly_ps");
 
 	//***************************************
 	//**** Post processing shaders
@@ -90,7 +91,7 @@ bool LoadShaders()
 		gRetroPostProcess			== nullptr || gDepthPostProcess			 == nullptr ||
 		gCellPostProcess			== nullptr || gInvertPostProcess		 == nullptr ||
 		gUnderWaterPostProcess		== nullptr || gPortalPixelShader		 == nullptr ||
-		g2DPolygonVertexShader     == nullptr)
+		gDepthOnlyPixelShader       == nullptr || g2DPolygonVertexShader     == nullptr)
 	{
 		gLastError = "Error loading shaders";
 		return false;
@@ -102,6 +103,7 @@ bool LoadShaders()
 
 void ReleaseShaders()
 {
+	if (gDepthOnlyPixelShader)        gDepthOnlyPixelShader->Release();
 	if (gInvertPostProcess)           gInvertPostProcess		 ->Release();
 	if (gCellPostProcess)             gCellPostProcess		     ->Release();
 	if (gDepthPostProcess)            gDepthPostProcess		     ->Release();
