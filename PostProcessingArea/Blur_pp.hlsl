@@ -43,18 +43,18 @@ float4 main(PostProcessingInput input) : SV_Target
   
     
     
-    float xPixel = (1 / gViewportWidth) * 5;
-    float yPixel = (1 / gViewportHeight) * 5;
+    float xPixel = (1 / gViewportWidth) * gBlurLevel;
+    float yPixel = (1 / gViewportHeight) * gBlurLevel;
     
-    float3 ppColour = SceneTexture.Sample(PointSample, input.sceneUV) * weight[0];
+    float3 ppColour = SceneTexture.Sample(TrilinearWrap, input.sceneUV) * weight[0];
     float3 FragmentColor = float3(0.0f, 0.0f, 0.0f);
 
     
     for (int i = 1; i < 5; ++i)
     {
         
-        FragmentColor += (SceneTexture.Sample(PointSample, input.sceneUV + float2(xPixel * offset[i], 0.0f)) * weight[i] +
-         SceneTexture.Sample(PointSample, input.sceneUV - float2(xPixel * offset[i], 0.0f)) * weight[i]); //;+
+        FragmentColor += (SceneTexture.Sample(TrilinearWrap, input.sceneUV + float2(xPixel * offset[i], 0.0f)) * weight[i] +
+         SceneTexture.Sample(TrilinearWrap, input.sceneUV - float2(xPixel * offset[i], 0.0f)) * weight[i]); //;+
          //SceneTexture.Sample(TrilinearWrap, input.sceneUV + float2(0.0f, yPixel * offset[i])) * weight[i] +
          //SceneTexture.Sample(TrilinearWrap, input.sceneUV + float2(0.0f, -yPixel * offset[i])) * weight[i]);
 

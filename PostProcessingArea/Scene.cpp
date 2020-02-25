@@ -1623,6 +1623,15 @@ void RenderScene()
 			gCurrentPostProcess = PostProcess::None, currentList.clear();
 		}
 
+
+		ImGui::SliderFloat("Blur Amount", &gPostProcessingConstants.blurLevel, 0, 3);
+
+
+		//gPostProcessingConstants.blurLevel = 3;
+
+
+
+
 		ImGui::TreePop();
 	}
 
@@ -1819,7 +1828,7 @@ void UpdateScene(float frameTime)
 	gPostProcessingConstants.bloomLevel = 10;
 
 	// Set Blur Level
-	gPostProcessingConstants.blurLevel = 10;
+
 
 	// Set and increase the amount of Underwater - use a tweaked cos wave to animate
 	static float UnderWaterTimer = 0.0f;

@@ -40,12 +40,12 @@ float4 main(PostProcessingInput input) : SV_Target
 
 
 	const float weight[] = { 0.227027, 0.1945946, 0.1216216, 0.054054, 0.016216};
-	const float offset[] = { 0.0, 1.0 * blur, 2.0 * blur, 3.0 * blur, 4.0 * blur };
+	const float offset[] = { 0.0, 1.0, 2.0, 3.0, 4.0};
 
 
 
-	float xPixel = (1 / gViewportWidth);
-	float yPixel = (1 / gViewportHeight);
+    float xPixel = (1 / gViewportWidth) * gBlurLevel;
+    float yPixel = (1 / gViewportHeight) * gBlurLevel;
 
 	float3 ppColour = SceneTexture.Sample(PointSample, input.sceneUV) * weight[0];
 	float3 FragmentColor = float3(0.0f, 0.0f, 0.0f);
