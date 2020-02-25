@@ -54,7 +54,7 @@ enum class PostProcess
 	CellShading,
 	Invert,
 	UnderWater,
-
+	SecondBlur,
 
 
 
@@ -904,6 +904,12 @@ void SelectPostProcessShaderAndTextures(PostProcess postProcess)
 		gD3DContext->PSSetSamplers(1, 1, &gTrilinearSampler);
 	}
 
+	else if (postProcess == PostProcess::SecondBlur)
+	{
+		gD3DContext->PSSetShader(gSecondBlurPostProcess, nullptr, 0);
+		gD3DContext->PSSetSamplers(1, 1, &gTrilinearSampler);
+	}
+
 	else if (postProcess == PostProcess::Bloom)
 	{
 		gD3DContext->PSSetShader(gBloomPostProcess, nullptr, 0);
@@ -1750,7 +1756,7 @@ void UpdateScene(float frameTime)
 	if (KeyHit(Key_4))  gCurrentPostProcess = PostProcess::Distort, currentList.push_back(gCurrentPostProcess);
 	if (KeyHit(Key_5))  gCurrentPostProcess = PostProcess::Spiral, currentList.push_back(gCurrentPostProcess);
 	if (KeyHit(Key_6))   gCurrentPostProcess = PostProcess::HeatHaze, currentList.push_back(gCurrentPostProcess);
-	if (KeyHit(Key_7))  gCurrentPostProcess = PostProcess::Blur, currentList.push_back(gCurrentPostProcess);
+	if (KeyHit(Key_7))  gCurrentPostProcess = PostProcess::Blur, currentList.push_back(gCurrentPostProcess), gCurrentPostProcess = PostProcess::SecondBlur, currentList.push_back(gCurrentPostProcess);
 	if (KeyHit(Key_8))  gCurrentPostProcess = PostProcess::Bloom, currentList.push_back(gCurrentPostProcess);
 	if (KeyHit(Key_9))   gCurrentPostProcess = PostProcess::Copy, currentList.push_back(gCurrentPostProcess);
 	if (KeyHit(Key_0))   gCurrentPostProcess = PostProcess::None, currentList.clear();

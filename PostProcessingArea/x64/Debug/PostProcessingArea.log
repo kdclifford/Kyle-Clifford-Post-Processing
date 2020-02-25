@@ -1,2 +1,6 @@
-﻿  compilation object save succeeded; see D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\BasicTransform_vs.cso
+﻿D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\SecondBlur_pp.hlsl(50,9-78): warning X3206: implicit truncation of vector type
+D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\SecondBlur_pp.hlsl(57,3): warning X3206: implicit truncation of vector type
+D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\SecondBlur_pp.hlsl(67,9-65): warning X3206: implicit truncation of vector type
+  
+  compilation object save succeeded; see D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\SecondBlur_pp.cso
   PostProcessingArea.vcxproj -> D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\\PostProcessingArea.exe

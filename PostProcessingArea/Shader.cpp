@@ -37,6 +37,7 @@ ID3D11PixelShader*  gSpiralPostProcess     = nullptr;
 ID3D11PixelShader*  gHeatHazePostProcess   = nullptr;
 ID3D11PixelShader*  gUnderWaterPostProcess = nullptr;
 ID3D11PixelShader*  gBlurPostProcess       = nullptr;
+ID3D11PixelShader*  gSecondBlurPostProcess       = nullptr;
 ID3D11PixelShader*  gBloomPostProcess	   = nullptr;
 ID3D11PixelShader*  gRetroPostProcess	   = nullptr;
 ID3D11PixelShader*  gDepthPostProcess	   = nullptr;
@@ -75,6 +76,7 @@ bool LoadShaders()
 	gHeatHazePostProcess		= LoadPixelShader ("HeatHaze_pp");
 	gUnderWaterPostProcess	    = LoadPixelShader ("UnderWater_pp");
 	gBlurPostProcess		    = LoadPixelShader ("Blur_pp");
+	gSecondBlurPostProcess		    = LoadPixelShader ("SecondBlur_pp");
 	gBloomPostProcess		    = LoadPixelShader ("Bloom_pp");
 	gRetroPostProcess		    = LoadPixelShader ("Retro_pp");
 	gDepthPostProcess		    = LoadPixelShader ("Depth_pp");
@@ -91,7 +93,8 @@ bool LoadShaders()
 		gRetroPostProcess			== nullptr || gDepthPostProcess			 == nullptr ||
 		gCellPostProcess			== nullptr || gInvertPostProcess		 == nullptr ||
 		gUnderWaterPostProcess		== nullptr || gPortalPixelShader		 == nullptr ||
-		gDepthOnlyPixelShader       == nullptr || g2DPolygonVertexShader     == nullptr)
+		gDepthOnlyPixelShader       == nullptr || gSecondBlurPostProcess     == nullptr ||
+		g2DPolygonVertexShader      == nullptr)
 	{
 		gLastError = "Error loading shaders";
 		return false;
@@ -110,6 +113,7 @@ void ReleaseShaders()
 	if (gRetroPostProcess)            gRetroPostProcess		     ->Release();
 	if (gBloomPostProcess)            gBloomPostProcess		     ->Release();
 	if (gBlurPostProcess)             gBlurPostProcess		     ->Release();
+	if (gBlurPostProcess)             gSecondBlurPostProcess     ->Release();
 	if (gUnderWaterPostProcess)       gUnderWaterPostProcess	 ->Release();
 	if (gHeatHazePostProcess)         gHeatHazePostProcess       ->Release();
 	if (gSpiralPostProcess)           gSpiralPostProcess         ->Release();

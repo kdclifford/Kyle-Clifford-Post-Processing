@@ -21,7 +21,7 @@ extern ID3D11VertexShader*   gPixelLightingVertexShader;
 extern ID3D11PixelShader*    gTintedTexturePixelShader;
 extern ID3D11PixelShader*    gPixelLightingPixelShader;
 extern ID3D11PixelShader*    gPortalPixelShader;
-extern ID3D11PixelShader* gDepthOnlyPixelShader;
+extern ID3D11PixelShader*    gDepthOnlyPixelShader;
 
 //*******************************
 //**** Post-processing shader DirectX objects
@@ -36,6 +36,7 @@ extern ID3D11PixelShader*  gSpiralPostProcess;
 extern ID3D11PixelShader*  gHeatHazePostProcess;
 extern ID3D11PixelShader*  gUnderWaterPostProcess;
 extern ID3D11PixelShader*  gBlurPostProcess;
+extern ID3D11PixelShader*  gSecondBlurPostProcess;
 extern ID3D11PixelShader*  gBloomPostProcess;
 extern ID3D11PixelShader*  gRetroPostProcess;
 extern ID3D11PixelShader*  gDepthPostProcess;
