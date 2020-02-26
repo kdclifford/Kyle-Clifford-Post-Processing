@@ -55,6 +55,7 @@ enum class PostProcess
 	Invert,
 	UnderWater,
 	SecondBlur,
+	Combine,
 
 
 
@@ -76,6 +77,7 @@ auto gCurrentPostProcessMode = PostProcessMode::Fullscreen;
 
 //********************
 void ImagePostProcessing(PostProcess postProcess, int Target, int ResourseOutput);
+void FullScreenPostProcess(PostProcess postProcess, int pass);
 
 // Constants controlling speed of movement/rotation (measured in units per second because we're using frame time)
 const float ROTATION_SPEED = 1.5f;  // Radians per second for rotation
@@ -847,7 +849,7 @@ void RenderSceneFromCamera(Camera* camera)
 
 // Select the appropriate shader plus any additional textures required for a given post-process
 // Helper function shared by full-screen, area and polygon post-processing functions below
-void SelectPostProcessShaderAndTextures(PostProcess postProcess)
+void SelectPostProcessShaderAndTextures(PostProcess postProcess, int index)
 {
 	if (postProcess == PostProcess::Copy)
 	{
@@ -948,8 +950,159 @@ void SelectPostProcessShaderAndTextures(PostProcess postProcess)
 
 	else if (postProcess == PostProcess::Bloom)
 	{
+		int pass = index;
+
+		//gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[4], gDepthStencil);
+		//gD3DContext->Draw(4, 0);
+
+		if (pass % 2 == 0)
+		{
+			gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[1], gDepthStencil);
+			gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[0]);
+			gD3DContext->PSSetSamplers(0, 1, &gPointSampler); // Use point sampling (no bilinear, trilinear, mip-mapping etc. for most post-processes)
+		}
+		else
+		{
+			gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[0], gDepthStencil);
+			gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[1]);
+			gD3DContext->PSSetSamplers(0, 1, &gPointSampler); // Use point sampling (no bilinear, trilinear, mip-mapping etc. for most post-processes)
+
+		}
+
+
+
 		gD3DContext->PSSetShader(gBloomPostProcess, nullptr, 0);
 		gD3DContext->PSSetSamplers(1, 1, &gTrilinearSampler);
+
+		gPostProcessingConstants.area2DTopLeft = { 0, 0 }; // Top-left of entire screen
+		gPostProcessingConstants.area2DSize = { 1, 1 }; // Full size of screen
+		gPostProcessingConstants.area2DDepth = 0;        // Depth buffer value for full screen is as close as possible
+
+
+		// Pass over the above post-processing settings (also the per-process settings prepared in UpdateScene function below)
+		UpdateConstantBuffer(gPostProcessingConstantBuffer, gPostProcessingConstants);
+		gD3DContext->VSSetConstantBuffers(1, 1, &gPostProcessingConstantBuffer);
+		gD3DContext->PSSetConstantBuffers(1, 1, &gPostProcessingConstantBuffer);
+
+
+		// Draw a quad
+		gD3DContext->Draw(4, 0);
+
+
+		gD3DContext->OMSetRenderTargets(1, &gBackBufferRenderTarget, gDepthStencil);
+
+
+		//gD3DContext->Draw(4, 0);
+
+		ID3D11ShaderResourceView* nullSRV = nullptr;
+		gD3DContext->PSSetShaderResources(0, 1, &nullSRV);
+		
+		for (int i = 0; i < 2; i++)
+		{
+			pass++;
+
+			if (pass % 2 == 0)
+			{
+				gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[1], gDepthStencil);
+				gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[0]);
+				gD3DContext->PSSetSamplers(0, 1, &gPointSampler); // Use point sampling (no bilinear, trilinear, mip-mapping etc. for most post-processes)
+			}
+			else
+			{
+				gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[0], gDepthStencil);
+				gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[1]);
+				gD3DContext->PSSetSamplers(0, 1, &gPointSampler); // Use point sampling (no bilinear, trilinear, mip-mapping etc. for most post-processes)
+
+			}
+
+
+			SelectPostProcessShaderAndTextures(PostProcess::Blur, 0);
+
+			// Set 2D area for full-screen post-processing (coordinates in 0->1 range)
+			gPostProcessingConstants.area2DTopLeft = { 0, 0 }; // Top-left of entire screen
+			gPostProcessingConstants.area2DSize = { 1, 1 }; // Full size of screen
+			gPostProcessingConstants.area2DDepth = 0;        // Depth buffer value for full screen is as close as possible
+
+
+			// Pass over the above post-processing settings (also the per-process settings prepared in UpdateScene function below)
+			UpdateConstantBuffer(gPostProcessingConstantBuffer, gPostProcessingConstants);
+			gD3DContext->VSSetConstantBuffers(1, 1, &gPostProcessingConstantBuffer);
+			gD3DContext->PSSetConstantBuffers(1, 1, &gPostProcessingConstantBuffer);
+
+
+			// Draw a quad
+			gD3DContext->Draw(4, 0);
+
+
+			gD3DContext->OMSetRenderTargets(1, &gBackBufferRenderTarget, gDepthStencil);
+
+
+			gD3DContext->Draw(4, 0);
+
+			gD3DContext->PSSetShaderResources(0, 1, &nullSRV);
+			pass++;
+
+			if (pass % 2 == 0)
+			{
+				gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[1], gDepthStencil);
+				//gD3DContext->PSSetShaderResources(1, 1, &gDepthShaderView);
+				gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[0]);
+				gD3DContext->PSSetSamplers(0, 1, &gPointSampler); // Use point sampling (no bilinear, trilinear, mip-mapping etc. for most post-processes)
+			}
+			else
+			{
+				gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[0], gDepthStencil);
+				////gD3DContext->PSSetShaderResources(1, 1, &gDepthShaderView);
+				gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[1]);
+				gD3DContext->PSSetSamplers(0, 1, &gPointSampler); // Use point sampling (no bilinear, trilinear, mip-mapping etc. for most post-processes)
+
+			}
+
+			SelectPostProcessShaderAndTextures(PostProcess::SecondBlur, 0);
+
+			// Set 2D area for full-screen post-processing (coordinates in 0->1 range)
+			gPostProcessingConstants.area2DTopLeft = { 0, 0 }; // Top-left of entire screen
+			gPostProcessingConstants.area2DSize = { 1, 1 }; // Full size of screen
+			gPostProcessingConstants.area2DDepth = 0;        // Depth buffer value for full screen is as close as possible
+
+
+			// Pass over the above post-processing settings (also the per-process settings prepared in UpdateScene function below)
+			UpdateConstantBuffer(gPostProcessingConstantBuffer, gPostProcessingConstants);
+			gD3DContext->VSSetConstantBuffers(1, 1, &gPostProcessingConstantBuffer);
+			gD3DContext->PSSetConstantBuffers(1, 1, &gPostProcessingConstantBuffer);
+
+
+			// Draw a quad
+			gD3DContext->Draw(4, 0);
+
+
+			gD3DContext->OMSetRenderTargets(1, &gBackBufferRenderTarget, gDepthStencil);
+
+
+			gD3DContext->Draw(4, 0);
+
+			gD3DContext->PSSetShaderResources(0, 1, &nullSRV);
+		}
+		pass++;
+
+		if (pass % 2 == 0)
+		{
+			gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[1], gDepthStencil);
+			gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[0]);
+			gD3DContext->PSSetShaderResources(1, 1, &gSceneTextureSRV[4]);
+			gD3DContext->PSSetSamplers(0, 1, &gPointSampler); // Use point sampling (no bilinear, trilinear, mip-mapping etc. for most post-processes)
+		}
+		else
+		{
+			gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[0], gDepthStencil);
+			gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[1]);
+			gD3DContext->PSSetShaderResources(1, 1, &gSceneTextureSRV[4]);
+			gD3DContext->PSSetSamplers(0, 1, &gPointSampler); // Use point sampling (no bilinear, trilinear, mip-mapping etc. for most post-processes)
+
+		}
+
+		SelectPostProcessShaderAndTextures(PostProcess::Combine, 0);
+
 	}
 
 	else if (postProcess == PostProcess::Retro)
@@ -976,6 +1129,13 @@ void SelectPostProcessShaderAndTextures(PostProcess postProcess)
 	{
 		gD3DContext->PSSetShader(gInvertPostProcess, nullptr, 0);
 	}
+
+	else if (postProcess == PostProcess::Combine)
+	{
+	gD3DContext->PSSetShader(gCombinePostProcess, nullptr, 0);
+	//gD3DContext->PSSetShaderResources(1, 1, &gSceneTextureSRV[4]);
+	}
+
 }
 
 // Perform a full-screen post process from "scene texture" to back buffer
@@ -1005,7 +1165,7 @@ void ImagePostProcessing(PostProcess postProcess, int Target, int ResourseOutput
 
 
 	// Select shader and textures needed for the required post-processes (helper function above)
-	SelectPostProcessShaderAndTextures(postProcess);
+	SelectPostProcessShaderAndTextures(postProcess, 0);
 
 	/*	UpdateConstantBuffer(gPostProcessingConstantBuffer, gPostProcessingConstants);
 		gD3DContext->PSSetConstantBuffers(1, 1, &gPostProcessingConstantBuffer);*/
@@ -1090,7 +1250,7 @@ void FullScreenPostProcess(PostProcess postProcess, int pass)
 
 
 	// Select shader and textures needed for the required post-processes (helper function above)
-	SelectPostProcessShaderAndTextures(postProcess);
+	SelectPostProcessShaderAndTextures(postProcess, pass);
 
 	/*	UpdateConstantBuffer(gPostProcessingConstantBuffer, gPostProcessingConstants);
 		gD3DContext->PSSetConstantBuffers(1, 1, &gPostProcessingConstantBuffer);*/
@@ -1139,7 +1299,7 @@ void AreaPostProcess(PostProcess postProcess, CVector3 worldPoint, CVector2 area
 	//       aware of all the work that the above function did that was also preparation for this post-process area step
 
 	// Select shader/textures needed for required post-process
-	SelectPostProcessShaderAndTextures(postProcess);
+	SelectPostProcessShaderAndTextures(postProcess,0);
 
 	// Enable alpha blending - area effects need to fade out at the edges or the hard edge of the area is visible
 	// A couple of the shaders have been updated to put the effect into a soft circle
@@ -1210,7 +1370,7 @@ void PolygonPostProcess(PostProcess postProcess, const std::array<CVector3, 4> &
 	//       aware of all the work that the above function did that was also preparation for this post-process area step
 
 	// Select shader/textures needed for required post-process
-	SelectPostProcessShaderAndTextures(postProcess);
+	SelectPostProcessShaderAndTextures(postProcess, 0);
 
 
 	gD3DContext->OMSetBlendState(gAlphaBlendingState, nullptr, 0xffffff);
@@ -1246,7 +1406,6 @@ void PolygonPostProcess(PostProcess postProcess, const std::array<CVector3, 4> &
 
 
 //**************************
-
 
 bool PortalMove(CMatrix4x4 startMat)
 {
@@ -1302,9 +1461,6 @@ bool PortalMove(CMatrix4x4 startMat)
 
 
 }
-
-
-
 
 // Rendering the scene
 void RenderScene()
@@ -1384,9 +1540,15 @@ void RenderScene()
 	// Set the target for rendering and select the main depth buffer.
 	// If using post-processing then render to the scene texture, otherwise to the usual back buffer
 	// Also clear the render target to a fixed colour and the depth buffer to the far distance
+
+	gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[4], gDepthStencil);
+	gD3DContext->ClearRenderTargetView(gSceneRenderTarget[4], &gBackgroundColor.r);
+	gD3DContext->ClearDepthStencilView(gDepthStencil, D3D11_CLEAR_DEPTH, 1.0f, 0);
+	RenderSceneFromCamera(gCamera);
+
+
 	if (!currentList.empty())
 	{
-
 		gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[0], gDepthStencil);
 		gD3DContext->ClearRenderTargetView(gSceneRenderTarget[0], &gBackgroundColor.r);
 	}
@@ -1395,7 +1557,11 @@ void RenderScene()
 		gD3DContext->OMSetRenderTargets(1, &gBackBufferRenderTarget, gDepthStencil);
 		gD3DContext->ClearRenderTargetView(gBackBufferRenderTarget, &gBackgroundColor.r);
 	}
+
 	gD3DContext->ClearDepthStencilView(gDepthStencil, D3D11_CLEAR_DEPTH, 1.0f, 0);
+
+
+
 
 	// Setup the viewport to the size of the main window
 
@@ -1417,6 +1583,7 @@ void RenderScene()
 	RenderSceneFromCamera(gCamera);
 
 
+	
 
 	////--------------- Scene completion ---------------////
 
@@ -1479,19 +1646,6 @@ void RenderScene()
 				PolygonPostProcess(postProcessTing[i]->process, postProcessTing[i]->points, postProcessTing[i]->polyMatrix);
 				gD3DContext->PSSetShaderResources(0, 1, &nullSRV);
 			}
-
-			//// Pass an array of 4 points and a matrix. Only supports 4 points.
-			//PolygonPostProcess(PostProcess::Retro, points[2], polyMatrix[2]);
-			//PolygonPostProcess(PostProcess::Tint, points[1], polyMatrix[1]);
-
-			//PolygonPostProcess(PostProcess::UnderWater, points[3], polyMatrix[3]);
-			//PolygonPostProcess(PostProcess::Spiral, points[4], polyMatrix[4]);
-			//PolygonPostProcess(PostProcess::Tint, points[0], polyMatrix[0]);
-
-
-
-
-
 		}
 
 	
@@ -1742,7 +1896,9 @@ void UpdateScene(float frameTime)
 	if (KeyHit(Key_5))  gCurrentPostProcess = PostProcess::Spiral, currentList.push_back(gCurrentPostProcess);
 	if (KeyHit(Key_6))   gCurrentPostProcess = PostProcess::HeatHaze, currentList.push_back(gCurrentPostProcess);
 	if (KeyHit(Key_7))  gCurrentPostProcess = PostProcess::Blur, currentList.push_back(gCurrentPostProcess), gCurrentPostProcess = PostProcess::SecondBlur, currentList.push_back(gCurrentPostProcess);
-	if (KeyHit(Key_8))  gCurrentPostProcess = PostProcess::Bloom, currentList.push_back(gCurrentPostProcess);
+	if (KeyHit(Key_8))  gCurrentPostProcess = PostProcess::Bloom, currentList.push_back(gCurrentPostProcess)/*, gCurrentPostProcess = PostProcess::Blur, currentList.push_back(gCurrentPostProcess), 
+		gCurrentPostProcess = PostProcess::SecondBlur, currentList.push_back(gCurrentPostProcess), gCurrentPostProcess = PostProcess::Blur, currentList.push_back(gCurrentPostProcess),
+			gCurrentPostProcess = PostProcess::SecondBlur, currentList.push_back(gCurrentPostProcess)*/;
 	if (KeyHit(Key_9))   gCurrentPostProcess = PostProcess::Copy, currentList.push_back(gCurrentPostProcess);
 	if (KeyHit(Key_0))   gCurrentPostProcess = PostProcess::None, currentList.clear();
 	if (KeyHit(Key_Numpad0))  gCurrentPostProcess = PostProcess::Depth, currentList.push_back(gCurrentPostProcess);
@@ -1812,7 +1968,7 @@ void UpdateScene(float frameTime)
 
 	// Set and increase the amount of Underwater - use a tweaked cos wave to animate
 	static float UnderWaterTimer = 0.0f;
-	const float UnderWaterSpeed = 1.0f;
+	const float UnderWaterSpeed = 0.5f;
 	gPostProcessingConstants.underWaterLevel = ((1.0f - cos(UnderWaterTimer)) * 4.0f);
 	UnderWaterTimer += UnderWaterSpeed * frameTime;
 

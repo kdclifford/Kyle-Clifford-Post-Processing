@@ -37,12 +37,13 @@ ID3D11PixelShader*  gSpiralPostProcess     = nullptr;
 ID3D11PixelShader*  gHeatHazePostProcess   = nullptr;
 ID3D11PixelShader*  gUnderWaterPostProcess = nullptr;
 ID3D11PixelShader*  gBlurPostProcess       = nullptr;
-ID3D11PixelShader*  gSecondBlurPostProcess       = nullptr;
+ID3D11PixelShader*  gSecondBlurPostProcess = nullptr;
 ID3D11PixelShader*  gBloomPostProcess	   = nullptr;
 ID3D11PixelShader*  gRetroPostProcess	   = nullptr;
 ID3D11PixelShader*  gDepthPostProcess	   = nullptr;
 ID3D11PixelShader*  gCellPostProcess	   = nullptr;
 ID3D11PixelShader*  gInvertPostProcess	   = nullptr;
+ID3D11PixelShader*  gCombinePostProcess    = nullptr;
 
 
 //--------------------------------------------------------------------------------------
@@ -82,6 +83,7 @@ bool LoadShaders()
 	gDepthPostProcess		    = LoadPixelShader ("Depth_pp");
 	gCellPostProcess		    = LoadPixelShader ("CellShading_pp");
 	gInvertPostProcess		    = LoadPixelShader ("Invert_pp");
+	gCombinePostProcess		    = LoadPixelShader ("BloomCombine_pp");
 
 	if (gBasicTransformVertexShader == nullptr || gPixelLightingVertexShader == nullptr ||
 		gTintedTexturePixelShader   == nullptr || gPixelLightingPixelShader  == nullptr ||
@@ -94,6 +96,7 @@ bool LoadShaders()
 		gCellPostProcess			== nullptr || gInvertPostProcess		 == nullptr ||
 		gUnderWaterPostProcess		== nullptr || gPortalPixelShader		 == nullptr ||
 		gDepthOnlyPixelShader       == nullptr || gSecondBlurPostProcess     == nullptr ||
+		gCombinePostProcess         == nullptr ||
 		g2DPolygonVertexShader      == nullptr)
 	{
 		gLastError = "Error loading shaders";
@@ -107,6 +110,7 @@ bool LoadShaders()
 void ReleaseShaders()
 {
 	if (gDepthOnlyPixelShader)        gDepthOnlyPixelShader->Release();
+	if (gCombinePostProcess)          gCombinePostProcess		 ->Release();
 	if (gInvertPostProcess)           gInvertPostProcess		 ->Release();
 	if (gCellPostProcess)             gCellPostProcess		     ->Release();
 	if (gDepthPostProcess)            gDepthPostProcess		     ->Release();

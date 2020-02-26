@@ -62,9 +62,9 @@ float4 main(PostProcessingInput input) : SV_Target
     
     float3 RGB;
     
-    RGB.r = lerp(gTintColour.r, gTintColour2.r, input.sceneUV.y);
-    RGB.g = lerp(gTintColour.g, gTintColour2.g, input.sceneUV.y);
-    RGB.b = lerp(gTintColour.b, gTintColour2.b, input.sceneUV.y);
+    RGB.r = lerp(gTintColour.r, 0.0f, input.sceneUV.y);
+    RGB.g = lerp(gTintColour.g, 0.0f, input.sceneUV.y);
+    RGB.b = lerp(0.0f, gTintColour.b, input.sceneUV.y);
     
     // Convert an RGB colour to a HSL colour
 
@@ -136,9 +136,17 @@ float4 main(PostProcessingInput input) : SV_Target
     }
     else
     {
+        float hue;
         float v1, v2;
-        float hue = (float) (H * gUnderWaterLevel) / 360;
-
+        if (H * gUnderWaterLevel > 0)
+        {
+            hue = (float) (H * gUnderWaterLevel) / 360;
+        }
+        else
+        {
+            hue = (float) H / 360;
+        }
+        
         v2 = (L < 0.5) ? (L * (1 + S)) : ((L + S) - (L * S));
         v1 = 2 * L - v2;
 
