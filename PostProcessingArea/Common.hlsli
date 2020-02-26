@@ -103,7 +103,7 @@ cbuffer PerFrameConstants : register(b0) // The b0 gives this constant buffer th
 
 
 static const int MAX_BONES = 64;
-static const int MAX_WEIGHTS = 32;
+//static const int MAX_WEIGHTS = 32;
 
 // If we have multiple models then we need to update the world matrix from C++ to GPU multiple times per frame because we
 // only have one world matrix here. Because this data is updated more frequently it is kept in a different buffer for better performance.
@@ -136,8 +136,8 @@ cbuffer PostProcessingConstants : register(b1)
 
 	// Tint post-process settings
 	float3 gTintColour;
-	float  paddingB;
-
+	float  paddingB;    
+    
 	// Grey noise post-process settings
     float2 gNoiseScale;
 	float2 gNoiseOffset;
@@ -170,8 +170,15 @@ cbuffer PostProcessingConstants : register(b1)
     float gBloomLevel;
     float3 paddingI;
     
-    float gWeights[MAX_WEIGHTS];
-    float3 paddingJ;
+    //float gWeights[MAX_WEIGHTS];
+    //float3 paddingJ;
+    
+    float3 gTintColour2;
+    float paddingJ;
+    
+    float gHueTimer;
+    float3 paddingK;
+    
 }
 
 //**************************

@@ -30,7 +30,7 @@
 
 
 static ImVec4 color = ImVec4(114.0f / 255.0f, 144.0f / 255.0f, 154.0f / 255.0f, 200.0f / 255.0f);
-
+static ImVec4 color2 = ImVec4(114.0f / 255.0f, 144.0f / 255.0f, 154.0f / 255.0f, 200.0f / 255.0f);
 //--------------------------------------------------------------------------------------
 // Scene Data
 //--------------------------------------------------------------------------------------
@@ -800,6 +800,9 @@ void RenderSceneFromCamera(Camera* camera)
 	gD3DContext->PSSetShaderResources(1, 1, &gSceneTextureSRV[3]); // First parameter must match texture slot number in the shader
 	gPortal->Render();
 
+	ID3D11ShaderResourceView* nullSRV = nullptr;
+	gD3DContext->PSSetShaderResources(1, 1, &nullSRV);
+
 	////--------------- Render sky ---------------////
 
 	// Select which shaders to use next
@@ -978,17 +981,7 @@ void SelectPostProcessShaderAndTextures(PostProcess postProcess)
 // Perform a full-screen post process from "scene texture" to back buffer
 void ImagePostProcessing(PostProcess postProcess, int Target, int ResourseOutput)
 {
-	//// Select the back buffer to use for rendering. Not going to clear the back-buffer because we're going to overwrite it all
-	//gD3DContext->OMSetRenderTargets(1, &gBackBufferRenderTarget, gDepthStencil);
-	//FullScreenPostProcess(PostProcess::Copy);
-
-	//
-	//// Give the pixel shader (post-processing shader) access to the scene texture 
-	//gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[0]);
-	//gD3DContext->PSSetSamplers(0, 1, &gPointSampler); // Use point sampling (no bilinear, trilinear, mip-mapping etc. for most post-processes)
-
 	gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[Target], gPortalDepthStencilView);
-	//gD3DContext->PSSetShaderResources(1, 1, &gDepthShaderView);
 	gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[ResourseOutput]);
 	gD3DContext->PSSetSamplers(0, 1, &gPointSampler); // Use point sampling (no bilinear, trilinear, mip-mapping etc. for most post-processes)
 
@@ -1037,9 +1030,9 @@ void ImagePostProcessing(PostProcess postProcess, int Target, int ResourseOutput
 	// Draw a quad
 	gD3DContext->Draw(4, 0);
 
+	ID3D11ShaderResourceView* nullSRV = nullptr;
+	gD3DContext->PSSetShaderResources(0, 1, &nullSRV);
 
-	//ID3D11ShaderResourceView* nullSRV = nullptr;
-	//gD3DContext->PSSetShaderResources(0, 1, &nullSRV);
 	gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[ResourseOutput], gPortalDepthStencilView);
 
 
@@ -1077,10 +1070,6 @@ void FullScreenPostProcess(PostProcess postProcess, int pass)
 	gD3DContext->IASetInputLayout(NULL); // No vertex data
 	gD3DContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
-
-
-	ID3D11ShaderResourceView* nullSRV = nullptr;
-	gD3DContext->PSSetShaderResources(0, 1, &nullSRV);
 
 	if (pass % 2 == 0)
 	{
@@ -1130,24 +1119,10 @@ void FullScreenPostProcess(PostProcess postProcess, int pass)
 	gD3DContext->OMSetRenderTargets(1, &gBackBufferRenderTarget, gDepthStencil);
 
 
-
-	//if (currentList.size() % 2 == 0)
-	//{
-	//	gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[0]);
-	//	gD3DContext->PSSetSamplers(0, 1, &gPointSampler); // Use point sampling (no bilinear, trilinear, mip-mapping etc. for most post-processes)
-	//}
-	//else
-	//{
-	//	gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[1]);
-	//	gD3DContext->PSSetSamplers(0, 1, &gPointSampler); // Use point sampling (no bilinear, trilinear, mip-mapping etc. for most post-processes)
-	//}
-
-	//gD3DContext->PSSetShader(gCopyPostProcess, nullptr, 0);
-
-
 	gD3DContext->Draw(4, 0);
 
-
+	ID3D11ShaderResourceView* nullSRV = nullptr;
+	gD3DContext->PSSetShaderResources(0, 1, &nullSRV);
 }
 
 
@@ -1224,15 +1199,10 @@ void PolygonPostProcess(PostProcess postProcess, const std::array<CVector3, 4> &
 	// First perform a full-screen copy of the scene to back-buffer
 	FullScreenPostProcess(PostProcess::Copy, 0);
 
-
 	gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[0], gDepthStencil);
-	//gD3DContext->PSSetShaderResources(1, 1, &gDepthShaderView);
+
 	gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[1]);
-	//gD3DContext->PSSetSamplers(0, 1, &gPointSampler); // Use point sampling (no bilinear, trilinear, mip-mapping etc. for most post-processes)
-	//gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[1], gDepthStencil);
-	////gD3DContext->PSSetShaderResources(1, 1, &gDepthShaderView);
-	//gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[0]);
-	//gD3DContext->PSSetSamplers(0, 1, &gPointSampler); // Use point sampling (no bilinear, trilinear, mip-mapping etc. for most post-processes)
+
 
 	// Now perform a post-process of a portion of the scene to the back-buffer (overwriting some of the copy above)
 	// Note: The following code relies on many of the settings that were prepared in the FullScreenPostProcess call above, it only
@@ -1262,24 +1232,16 @@ void PolygonPostProcess(PostProcess postProcess, const std::array<CVector3, 4> &
 	// Select the special 2D polygon post-processing vertex shader and draw the polygon
 	gD3DContext->VSSetShader(g2DPolygonVertexShader, nullptr, 0);
 
-	//gD3DContext->OMSetRenderTargets(1, &gBackBufferRenderTarget, gDepthStencil);
 
-
-		//gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[1]);
-		//gD3DContext->PSSetSamplers(0, 1, &gPointSampler); // Use point sampling (no bilinear, trilinear, mip-mapping etc. for most post-processes)
-
-		//gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[1]);
-		//gD3DContext->PSSetSamplers(0, 1, &gPointSampler); // Use point sampling (no bilinear, trilinear, mip-mapping etc. for most post-processes)
 
 
 	gD3DContext->Draw(4, 0);
+
 	gD3DContext->OMSetRenderTargets(1, &gBackBufferRenderTarget, gDepthStencil);
 
 	gD3DContext->Draw(4, 0);
 
-	ID3D11ShaderResourceView* nullSRV = nullptr;
-	gD3DContext->PSSetShaderResources(0, 1, &nullSRV);
-	gD3DContext->PSSetShaderResources(1, 1, &nullSRV);
+
 }
 
 
@@ -1415,9 +1377,8 @@ void RenderScene()
 	ImagePostProcessing(gTvPostProcess, 3, 2);
 
 	ID3D11ShaderResourceView* nullSRV = nullptr;
+	gD3DContext->PSSetShaderResources(1, 1, &nullSRV);
 	gD3DContext->PSSetShaderResources(0, 1, &nullSRV);
-
-
 	////--------------- Main scene rendering ---------------////
 
 	// Set the target for rendering and select the main depth buffer.
@@ -1471,6 +1432,8 @@ void RenderScene()
 			{
 				FullScreenPostProcess(currentList[i], i);
 			}
+			//ID3D11ShaderResourceView* nullSRV = nullptr;
+			gD3DContext->PSSetShaderResources(0, 1, &nullSRV);
 		}
 		if (gCurrentPostProcessMode == PostProcessMode::Area)
 		{
@@ -1514,6 +1477,7 @@ void RenderScene()
 			for (int i = 0; i < postProcessTing.size(); i++)
 			{
 				PolygonPostProcess(postProcessTing[i]->process, postProcessTing[i]->points, postProcessTing[i]->polyMatrix);
+				gD3DContext->PSSetShaderResources(0, 1, &nullSRV);
 			}
 
 			//// Pass an array of 4 points and a matrix. Only supports 4 points.
@@ -1530,19 +1494,9 @@ void RenderScene()
 
 		}
 
-		//if (currentList.size() % 2 == 0)
-		//{
-		//	gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[0]);
-		//	gD3DContext->PSSetSamplers(0, 1, &gPointSampler); // Use point sampling (no bilinear, trilinear, mip-mapping etc. for most post-processes)
-		//}
-		//else
-		//{
-		//	gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[1]);
-		//	gD3DContext->PSSetSamplers(0, 1, &gPointSampler); // Use point sampling (no bilinear, trilinear, mip-mapping etc. for most post-processes)
-		//}
-
+	
 	// These lines unbind the scene texture from the pixel shader to stop DirectX issuing a warning when we try to render to it again next frame
-		ID3D11ShaderResourceView* nullSRV = nullptr;
+		//ID3D11ShaderResourceView* nullSRV = nullptr;
 		gD3DContext->PSSetShaderResources(0, 1, &nullSRV);
 
 	}
@@ -1586,43 +1540,43 @@ void RenderScene()
 		ImGui::Text("Colour Picker");
 		ImGui::Separator();
 		ImGui::ColorPicker4("##picker", (float*)& color, 1 | ImGuiColorEditFlags_NoSidePreview | ImGuiColorEditFlags_NoSmallPreview);
-		ImGui::SameLine();
-
+		ImGui::Separator();
 		ImGui::BeginGroup(); // Lock X position
 		ImGui::Text("Current");
 		ImGui::ColorButton("##current", color, ImGuiColorEditFlags_NoPicker | ImGuiColorEditFlags_AlphaPreviewHalf, ImVec2(60, 40));
 		ImGui::Text("Previous");
-		if (ImGui::ColorButton("##previous", backup_colour, ImGuiColorEditFlags_NoPicker | ImGuiColorEditFlags_AlphaPreviewHalf, ImVec2(60, 40)))
-			color = backup_colour;
+		ImGui::ColorButton("##current", backup_colour, ImGuiColorEditFlags_NoPicker | ImGuiColorEditFlags_AlphaPreviewHalf, ImVec2(60, 40));
 		ImGui::Separator();
-		ImGui::Text("Palette");
-		for (int n = 0; n < IM_ARRAYSIZE(saved_palette); n++)
-		{
-			ImGui::PushID(n);
-			if ((n % 8) != 0)
-				ImGui::SameLine(0.0f, ImGui::GetStyle().ItemSpacing.y);
-			if (ImGui::ColorButton("##palette", saved_palette[n], ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_NoPicker | ImGuiColorEditFlags_NoTooltip, ImVec2(20, 20)))
-				color = ImVec4(saved_palette[n].x, saved_palette[n].y, saved_palette[n].z, color.w); // Preserve alpha!
 
-			// Allow user to drop colors into each palette entry
-			// (Note that ColorButton is already a drag source by default, unless using ImGuiColorEditFlags_NoDragDrop)
-			if (ImGui::BeginDragDropTarget())
-			{
-				if (const ImGuiPayload * payload = ImGui::AcceptDragDropPayload(IMGUI_PAYLOAD_TYPE_COLOR_3F))
-					memcpy((float*)& saved_palette[n], payload->Data, sizeof(float) * 3);
-				if (const ImGuiPayload * payload = ImGui::AcceptDragDropPayload(IMGUI_PAYLOAD_TYPE_COLOR_4F))
-					memcpy((float*)& saved_palette[n], payload->Data, sizeof(float) * 4);
-				ImGui::EndDragDropTarget();
-			}
-
-			ImGui::PopID();
-		}
+		ImGui::ColorPicker4("##picker2", (float*)& color2, 1 | ImGuiColorEditFlags_NoSidePreview | ImGuiColorEditFlags_NoSmallPreview);
+		ImGui::Separator();
+		ImGui::Text("Current2");
+		ImGui::Text("Previous");
+		ImGui::ColorButton("##current", backup_colour, ImGuiColorEditFlags_NoPicker | ImGuiColorEditFlags_AlphaPreviewHalf, ImVec2(60, 40));
+		ImGui::Separator();
+		ImGui::ColorButton("##current", color2, ImGuiColorEditFlags_DisplayRGB | ImGuiColorEditFlags_AlphaPreviewHalf, ImVec2(60, 40));
+		ImGui::Separator();
+		ImGui::SameLine();
+	
 
 		gPostProcessingConstants.tintColour.x = color.x;
 		gPostProcessingConstants.tintColour.y = color.y;
 		gPostProcessingConstants.tintColour.z = color.z;
+		gPostProcessingConstants.tintColour2.x = color2.x;
+		gPostProcessingConstants.tintColour2.y = color2.y;
+		gPostProcessingConstants.tintColour2.z = color2.z;
+
 		ImGui::EndGroup();
 		ImGui::EndPopup();
+	}
+	else
+	{
+		gPostProcessingConstants.tintColour.x = color.x;
+		gPostProcessingConstants.tintColour.y = color.y;
+		gPostProcessingConstants.tintColour.z = color.z;
+		gPostProcessingConstants.tintColour2.x = color2.x;
+		gPostProcessingConstants.tintColour2.y = color2.y;
+		gPostProcessingConstants.tintColour2.z = color2.z;
 	}
 
 	//ImGui::SliderFloat("Colour Red", &gPostProcessingConstants.tintColour.x, 0, 1);
@@ -1638,7 +1592,7 @@ void RenderScene()
 
 		if (ImGui::Button("Blur", ImVec2(100, 20)))
 		{
-			gCurrentPostProcess = PostProcess::Blur, currentList.push_back(gCurrentPostProcess);
+			gCurrentPostProcess = PostProcess::Blur, currentList.push_back(gCurrentPostProcess), gCurrentPostProcess = PostProcess::SecondBlur, currentList.push_back(gCurrentPostProcess);
 		}
 
 		if (ImGui::Button("Burn", ImVec2(100, 20)))
@@ -1655,9 +1609,6 @@ void RenderScene()
 		{
 			gCurrentPostProcess = PostProcess::None, currentList.clear();
 		}
-
-
-		//ImGui::SliderInt("Blur Amount", &gPostProcessingConstants.blurLevel, 1, 10);
 
 
 		//gPostProcessingConstants.blurLevel = 3;
@@ -1702,7 +1653,7 @@ void RenderScene()
 		ImGui::TreePop();
 	}
 
-
+	
 
 	ImGui::End();
 	//*******************************
@@ -1724,14 +1675,6 @@ void RenderScene()
 	// Set first parameter to 1 to lock to vsync
 	gSwapChain->Present(lockFPS ? 1 : 0, 0);
 
-	//gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[2], gPortalDepthStencilView);
-	//gD3DContext->ClearRenderTargetView(gSceneRenderTarget[2], &gBackgroundColor.r);
-	//FullScreenPostProcess(PostProcess::Tint);
-
-	//ID3D11ShaderResourceView* nullSRV = nullptr;
-	//gD3DContext->PSSetShaderResources(0, 1, &nullSRV);
-
-	//gSwapChain->Present(lockFPS ? 1 : 0, 0);
 
 	CVector3 test4;
 	CVector2 entityPixel;
@@ -1862,6 +1805,10 @@ void UpdateScene(float frameTime)
 
 	// Set Blur Level
 
+	static float HueTimer = 0.0f;
+	const float HueSpeed = 1.0f;
+	gPostProcessingConstants.hueTimer = ((1.0f - cos(HueTimer)) * 4.0f);
+	HueTimer += HueSpeed * frameTime;
 
 	// Set and increase the amount of Underwater - use a tweaked cos wave to animate
 	static float UnderWaterTimer = 0.0f;
@@ -1870,7 +1817,7 @@ void UpdateScene(float frameTime)
 	UnderWaterTimer += UnderWaterSpeed * frameTime;
 
 
-	
+
 
 	
 
