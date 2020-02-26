@@ -37,25 +37,51 @@ float4 main(PostProcessingInput input) : SV_Target
 		blur = 0.0f;
 	}
 
+    const int kernalSize = 32;
+    float GKernel[kernalSize];
+
+    int mean = kernalSize / 2;
+	// intialising standard deviation to 1.0 
+    float sum = 0;
+    float sigma = 10;
+    float r, s = 2.0 * sigma * sigma;
+
+	// sum is for normalization 
 
 
-	const float weight[] = { 0.227027, 0.1945946, 0.1216216, 0.054054, 0.016216};
-	const float offset[] = { 0.0, 1.0, 2.0, 3.0, 4.0};
+	// generating 5x5 kernel 
+    for (int x = 0; x < kernalSize; x++)
+    {
+        GKernel[x] = (float) exp(-0.5 * pow((x - mean) / sigma, 2.0));
+		// Accumulate the kernel values
+        sum += GKernel[x];
+    }
+
+	// normalising the Kernel 
+    for (int i = 0; i < kernalSize; ++i)
+    {
+        GKernel[i] /= sum;
+    }
 
 
 
-    float xPixel = (1 / gViewportWidth) * gBlurLevel;
-    float yPixel = (1 / gViewportHeight) * gBlurLevel;
 
-	float3 ppColour = SceneTexture.Sample(PointSample, input.sceneUV) * weight[0];
+   
+
+    
+
+    float xPixel = (1 / gViewportWidth);
+    float yPixel = (1 / gViewportHeight);
+
+    float3 ppColour = SceneTexture.Sample(PointSample, input.sceneUV) * GKernel[0];
 	float3 FragmentColor = float3(0.0f, 0.0f, 0.0f);
 
 
-	for (int i = 1; i < 5; ++i)
+    for (int i = 1; i < kernalSize; ++i)
 	{
 
-		FragmentColor += (SceneTexture.Sample(PointSample, input.sceneUV + float2(0.0f, yPixel * offset[i])) * weight[i] +
-		 SceneTexture.Sample(PointSample, input.sceneUV - float2(0.0f, yPixel * offset[i])) * weight[i]); //;+
+        FragmentColor += (SceneTexture.Sample(PointSample, input.sceneUV + float2(0.0f, yPixel * i)) * GKernel[i] +
+		 SceneTexture.Sample(PointSample, input.sceneUV - float2(0.0f, yPixel * i)) * GKernel[i]) / 2; //;+
 		 //SceneTexture.Sample(TrilinearWrap, input.sceneUV + float2(0.0f, yPixel * offset[i])) * weight[i] +
 		 //SceneTexture.Sample(TrilinearWrap, input.sceneUV + float2(0.0f, -yPixel * offset[i])) * weight[i]);
 
@@ -71,7 +97,7 @@ float4 main(PostProcessingInput input) : SV_Target
 
 
 	//return (1);
-	return float4(ppColour, 0.5f);
+	return float4(ppColour, 1.0f);
 
 
 

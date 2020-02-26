@@ -900,6 +900,39 @@ void SelectPostProcessShaderAndTextures(PostProcess postProcess)
 
 	else if (postProcess == PostProcess::Blur)
 	{
+		//const int kernalSize = 32;
+		//gPostProcessingConstants.blurLevel = kernalSize;
+
+		//float GKernel[kernalSize];
+
+		//int mean = kernalSize / 2;
+		//// intialising standard deviation to 1.0 
+		//float sum = 0;
+		//float sigma = 1;
+		//float r, s = 2.0 * sigma * sigma;
+
+		//// sum is for normalization 
+
+
+		//// generating 5x5 kernel 
+		//for (int x = 0; x < kernalSize; x++)
+		//{
+		//	GKernel[x] = (float)exp(-0.5 * pow((x - mean) / sigma, 2.0));
+		//	// Accumulate the kernel values
+		//	sum += GKernel[x];
+		//}
+
+		//// normalising the Kernel 
+		//for (int i = 0; i < kernalSize; ++i)
+		//{
+		//	GKernel[i] /= sum;
+		//}
+
+		//// normalising the Kernel 
+		//for (int i = 0; i < kernalSize; ++i)
+		//{
+		//	gPostProcessingConstants.weights[i] = GKernel[i];
+		//}
 		gD3DContext->PSSetShader(gBlurPostProcess, nullptr, 0);
 		gD3DContext->PSSetSamplers(1, 1, &gTrilinearSampler);
 	}
@@ -1624,7 +1657,7 @@ void RenderScene()
 		}
 
 
-		ImGui::SliderFloat("Blur Amount", &gPostProcessingConstants.blurLevel, 0, 3);
+		//ImGui::SliderInt("Blur Amount", &gPostProcessingConstants.blurLevel, 1, 10);
 
 
 		//gPostProcessingConstants.blurLevel = 3;
@@ -1835,6 +1868,13 @@ void UpdateScene(float frameTime)
 	const float UnderWaterSpeed = 1.0f;
 	gPostProcessingConstants.underWaterLevel = ((1.0f - cos(UnderWaterTimer)) * 4.0f);
 	UnderWaterTimer += UnderWaterSpeed * frameTime;
+
+
+	
+
+	
+
+
 
 
 	//***********
