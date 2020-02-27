@@ -138,9 +138,9 @@ float4 main(PostProcessingInput input) : SV_Target
     {
         float hue;
         float v1, v2;
-        if (H * gUnderWaterLevel > 0)
+        if (H * gHueTimer > 0)
         {
-            hue = (float) (H * gUnderWaterLevel) / 360;
+            hue = (float) (H * gHueTimer) / 360;
         }
         else
         {

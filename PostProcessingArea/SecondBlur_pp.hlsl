@@ -37,10 +37,10 @@ float4 main(PostProcessingInput input) : SV_Target
 		blur = 0.0f;
 	}
 
-    const int kernalSize = 32;
+    const int kernalSize = 128;
     float GKernel[kernalSize];
 
-    int mean = kernalSize / 2;
+    int mean = gKernalSize / 2;
 	// intialising standard deviation to 1.0 
     float sum = 0;
     float sigma = 10;
@@ -50,15 +50,15 @@ float4 main(PostProcessingInput input) : SV_Target
 
 
 	// generating 5x5 kernel 
-    for (int x = 0; x < kernalSize; x++)
+    for (int x = 0; x < gKernalSize; x++)
     {
-        GKernel[x] = (float) exp(-0.5 * pow((x - mean) / sigma, 2.0));
+        GKernel[x] = (float) exp(-0.5 * pow((x - mean) / sigma, 2.0)) / (sigma * sqrt(2 * 3.1415f));
 		// Accumulate the kernel values
         sum += GKernel[x];
     }
 
 	// normalising the Kernel 
-    for (int i = 0; i < kernalSize; ++i)
+    for (int i = 0; i < gKernalSize; ++i)
     {
         GKernel[i] /= sum;
     }
@@ -77,7 +77,7 @@ float4 main(PostProcessingInput input) : SV_Target
 	float3 FragmentColor = float3(0.0f, 0.0f, 0.0f);
 
 
-    for (int i = 1; i < kernalSize; ++i)
+    for (int i = 1; i < gKernalSize; ++i)
 	{
 
         FragmentColor += (SceneTexture.Sample(PointSample, input.sceneUV + float2(0.0f, yPixel * i)) * GKernel[i] +

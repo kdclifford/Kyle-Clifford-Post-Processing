@@ -90,6 +90,9 @@ std::vector<Model*> allModels;
 float t = 100;
 int oldMouseWheelPos = 0;
 
+const int kernalSize2 = 64;
+//const int kernalSize = 64;
+
 // Meshes, models and cameras, same meaning as TL-Engine. Meshes prepared in InitGeometry function, Models & camera in InitScene
 Mesh* gStarsMesh;
 Mesh* gGroundMesh;
@@ -905,12 +908,12 @@ void SelectPostProcessShaderAndTextures(PostProcess postProcess, int index)
 
 	else if (postProcess == PostProcess::Blur)
 	{
-		//const int kernalSize = 32;
-		//gPostProcessingConstants.blurLevel = kernalSize;
+		
+		////gPostProcessingConstants.blurLevel = kernalSize;
 
 		//float GKernel[kernalSize];
 
-		//int mean = kernalSize / 2;
+		//int mean = kernalSize2 / 2;
 		//// intialising standard deviation to 1.0 
 		//float sum = 0;
 		//float sigma = 1;
@@ -920,7 +923,7 @@ void SelectPostProcessShaderAndTextures(PostProcess postProcess, int index)
 
 
 		//// generating 5x5 kernel 
-		//for (int x = 0; x < kernalSize; x++)
+		//for (int x = 0; x < kernalSize2; x++)
 		//{
 		//	GKernel[x] = (float)exp(-0.5 * pow((x - mean) / sigma, 2.0));
 		//	// Accumulate the kernel values
@@ -928,17 +931,18 @@ void SelectPostProcessShaderAndTextures(PostProcess postProcess, int index)
 		//}
 
 		//// normalising the Kernel 
-		//for (int i = 0; i < kernalSize; ++i)
+		//for (int i = 0; i < kernalSize2; ++i)
 		//{
 		//	GKernel[i] /= sum;
 		//}
 
 		//// normalising the Kernel 
-		//for (int i = 0; i < kernalSize; ++i)
+		//for (int i = 0; i < kernalSize2; ++i)
 		//{
 		//	gPostProcessingConstants.weights[i] = GKernel[i];
 		//}
 		gD3DContext->PSSetShader(gBlurPostProcess, nullptr, 0);
+		//gPostProcessingConstants.kernalSize = kernalSize2;
 		gD3DContext->PSSetSamplers(1, 1, &gTrilinearSampler);
 	}
 
@@ -1733,7 +1737,7 @@ void RenderScene()
 		gPostProcessingConstants.tintColour2.z = color2.z;
 	}
 
-	//ImGui::SliderFloat("Colour Red", &gPostProcessingConstants.tintColour.x, 0, 1);
+	ImGui::SliderInt("Blur", &gPostProcessingConstants.kernalSize, 1, 128);
 	//ImGui::SliderFloat("Colour Green", &gPostProcessingConstants.tintColour.y, 0, 1);
 	//ImGui::SliderFloat("Colour Blue", &gPostProcessingConstants.tintColour.z, 0, 1);
 
@@ -1962,7 +1966,7 @@ void UpdateScene(float frameTime)
 	// Set Blur Level
 
 	static float HueTimer = 0.0f;
-	const float HueSpeed = 1.0f;
+	const float HueSpeed = 0.5f;
 	gPostProcessingConstants.hueTimer = ((1.0f - cos(HueTimer)) * 4.0f);
 	HueTimer += HueSpeed * frameTime;
 
@@ -1974,7 +1978,7 @@ void UpdateScene(float frameTime)
 
 
 
-
+	//gPostProcessingConstants.kernalSize = kernalSize2;
 	
 
 

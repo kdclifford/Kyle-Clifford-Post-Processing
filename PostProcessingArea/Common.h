@@ -92,7 +92,7 @@ extern ID3D11Buffer*     gPerFrameConstantBuffer; // This variable controls the 
 
 
 static const int MAX_BONES = 64;
-//static const int MAX_WEIGHTS = 32;
+static const int MAX_WEIGHTS = 64;
 
 // This is the matrix that positions the next thing to be rendered in the scene. Unlike the structure above this data can be
 // updated and sent to the GPU several times every frame (once per model). However, apart from that it works in the same way.
@@ -159,14 +159,17 @@ struct PostProcessingConstants
 	float bloomLevel;
 	CVector3 paddingI;
 
-	//float weights[MAX_WEIGHTS];
-	//CVector3 paddingJ;
-
 	CVector3 tintColour2;
-	CVector3    paddingJ;
+	float    paddingJ;
 
 	float hueTimer;
 	CVector3 paddingK;
+	   
+	int kernalSize;
+	CVector3 paddingL;
+
+	float gWeights[MAX_WEIGHTS];
+	CVector3 paddingM;
 
 };
 extern PostProcessingConstants gPostProcessingConstants;      // This variable holds the CPU-side constant buffer described above
