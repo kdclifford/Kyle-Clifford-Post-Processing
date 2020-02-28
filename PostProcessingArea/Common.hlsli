@@ -180,7 +180,7 @@ cbuffer PostProcessingConstants : register(b1)
     float3 paddingL;
     
     float gWeights[MAX_WEIGHTS];
-    float3 paddingM;    
+    //float3 paddingM[MAX_WEIGHTS];
     
 }
 

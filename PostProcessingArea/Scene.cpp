@@ -69,6 +69,9 @@ enum class PostProcessMode
 	Polygon,
 };
 
+const int KernalMaxSize = 64;
+float GKernel[KernalMaxSize];
+
 auto gCurrentPostProcess = PostProcess::None;
 auto gTvPostProcess = PostProcess(rand() % int(PostProcess::AmountOfPosts) + int(PostProcess::None));
 std::vector<PostProcess> currentList;
@@ -90,7 +93,7 @@ std::vector<Model*> allModels;
 float t = 100;
 int oldMouseWheelPos = 0;
 
-const int kernalSize2 = 64;
+
 //const int kernalSize = 64;
 
 // Meshes, models and cameras, same meaning as TL-Engine. Meshes prepared in InitGeometry function, Models & camera in InitScene
@@ -250,6 +253,53 @@ CMatrix4x4 CalculateLightProjectionMatrix(int lightIndex)
 {
 	return MakeProjectionMatrix(1.0f, ToRadians(gSpotlightConeAngle)); // Helper function in Utility\GraphicsHelpers.cpp
 }
+
+
+void CalculateWeights()
+{
+	int oddSize = KernalMaxSize;
+
+	if (KernalMaxSize % 2 == 0)
+	{
+		oddSize--;
+	}
+
+	int halfSize = ((oddSize - 1) / 2) + 1;
+
+	int mean = oddSize / 2;
+	// intialising standard deviation to 1.0 
+	float sum = 0;
+	float sigma = 100;
+	float r, s = 2.0 * sigma * sigma;
+
+	// sum is for normalization 
+
+
+	// generating 5x5 kernel 
+	for (int x = 0; x < oddSize; x++)
+	{
+		GKernel[x] = (float)exp(-0.5 * pow((x - mean) / sigma, 2.0)) / (sigma * sqrt(2 * 3.1415f));
+		// Accumulate the kernel values
+		sum += GKernel[x];
+	}
+
+	// normalising the Kernel 
+	for (int i = 0; i < oddSize; ++i)
+	{
+		GKernel[i] /= sum;
+	}
+
+
+	// send Kernel to postprocessing constants 
+	for (int i = 0; i < oddSize; ++i)
+	{
+		gPostProcessingConstants.weights[i] = GKernel[i];
+	}
+
+
+}
+
+
 
 
 
@@ -909,38 +959,7 @@ void SelectPostProcessShaderAndTextures(PostProcess postProcess, int index)
 	else if (postProcess == PostProcess::Blur)
 	{
 		
-		////gPostProcessingConstants.blurLevel = kernalSize;
-
-		//float GKernel[kernalSize];
-
-		//int mean = kernalSize2 / 2;
-		//// intialising standard deviation to 1.0 
-		//float sum = 0;
-		//float sigma = 1;
-		//float r, s = 2.0 * sigma * sigma;
-
-		//// sum is for normalization 
-
-
-		//// generating 5x5 kernel 
-		//for (int x = 0; x < kernalSize2; x++)
-		//{
-		//	GKernel[x] = (float)exp(-0.5 * pow((x - mean) / sigma, 2.0));
-		//	// Accumulate the kernel values
-		//	sum += GKernel[x];
-		//}
-
-		//// normalising the Kernel 
-		//for (int i = 0; i < kernalSize2; ++i)
-		//{
-		//	GKernel[i] /= sum;
-		//}
-
-		//// normalising the Kernel 
-		//for (int i = 0; i < kernalSize2; ++i)
-		//{
-		//	gPostProcessingConstants.weights[i] = GKernel[i];
-		//}
+		CalculateWeights();
 		gD3DContext->PSSetShader(gBlurPostProcess, nullptr, 0);
 		//gPostProcessingConstants.kernalSize = kernalSize2;
 		gD3DContext->PSSetSamplers(1, 1, &gTrilinearSampler);
@@ -1737,7 +1756,7 @@ void RenderScene()
 		gPostProcessingConstants.tintColour2.z = color2.z;
 	}
 
-	ImGui::SliderInt("Blur", &gPostProcessingConstants.kernalSize, 1, 128);
+	ImGui::SliderInt("Blur", &gPostProcessingConstants.kernalSize, 3, KernalMaxSize);
 	//ImGui::SliderFloat("Colour Green", &gPostProcessingConstants.tintColour.y, 0, 1);
 	//ImGui::SliderFloat("Colour Blue", &gPostProcessingConstants.tintColour.z, 0, 1);
 

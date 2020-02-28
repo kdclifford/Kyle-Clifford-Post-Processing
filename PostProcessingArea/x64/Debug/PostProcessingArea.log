@@ -1,15 +1,11 @@
-﻿D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\Blur_pp.hlsl(71,12-82): warning X3206: implicit truncation of vector type
+﻿D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\Blur_pp.hlsl(85,12-104): warning X3206: implicit truncation of vector type
+D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\Blur_pp.hlsl(90,14): warning X3078: 'i': loop control variable conflicts with a previous declaration in the outer scope; most recent declaration will be used
+D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\Blur_pp.hlsl(93,9): warning X3206: implicit truncation of vector type
+D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\Blur_pp.hlsl(103,12-68): warning X3206: implicit truncation of vector type
+D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\Blur_pp.hlsl(44,9-23): warning X3556: integer modulus may be much slower, try using uints if possible.
+D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\Blur_pp.hlsl(52,16-26): warning X3556: integer divides may be much slower, try using uints if possible.
+D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\Blur_pp.hlsl(85,82-98): warning X3556: integer divides may be much slower, try using uints if possible.
+D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\Blur_pp.hlsl(90,19-35): warning X3556: integer divides may be much slower, try using uints if possible.
+  
   compilation object save succeeded; see D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\Blur_pp.cso
-D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\Blur_pp.hlsl(75,14): warning X3078: 'i': loop control variable conflicts with a previous declaration in the outer scope; most recent declaration will be used
-D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\Blur_pp.hlsl(78,9): warning X3206: implicit truncation of vector type
-D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\Blur_pp.hlsl(88,12-68): warning X3206: implicit truncation of vector type
-D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\Blur_pp.hlsl(43,16-30): warning X3556: integer divides may be much slower, try using uints if possible.
-  
-D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\SecondBlur_pp.hlsl(76,12-82): warning X3206: implicit truncation of vector type
-D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\SecondBlur_pp.hlsl(80,14): warning X3078: 'i': loop control variable conflicts with a previous declaration in the outer scope; most recent declaration will be used
-D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\SecondBlur_pp.hlsl(83,9): warning X3206: implicit truncation of vector type
-D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\SecondBlur_pp.hlsl(93,9-65): warning X3206: implicit truncation of vector type
-D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\SecondBlur_pp.hlsl(43,16-30): warning X3556: integer divides may be much slower, try using uints if possible.
-  
-  compilation object save succeeded; see D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\SecondBlur_pp.cso
   PostProcessingArea.vcxproj -> D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\\PostProcessingArea.exe

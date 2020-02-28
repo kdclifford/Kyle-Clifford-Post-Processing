@@ -168,8 +168,8 @@ struct PostProcessingConstants
 	int kernalSize;
 	CVector3 paddingL;
 
-	float gWeights[MAX_WEIGHTS];
-	CVector3 paddingM;
+	float weights[MAX_WEIGHTS];
+	//CVector3 paddingM[MAX_WEIGHTS];
 
 };
 extern PostProcessingConstants gPostProcessingConstants;      // This variable holds the CPU-side constant buffer described above
