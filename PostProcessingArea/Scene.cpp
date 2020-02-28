@@ -295,12 +295,7 @@ void CalculateWeights()
 	{
 		gPostProcessingConstants.weights[i] = GKernel[i];
 	}
-
-
 }
-
-
-
 
 
 //--------------------------------------------------------------------------------------
@@ -484,11 +479,9 @@ bool InitGeometry()
 
 	//*****************************//
 
-
-
-
 	return true;
 }
+
 void createPolys()
 {
 	// An array of four points in world space - a tapered square centred at the origin
@@ -569,7 +562,6 @@ void createPolys()
 	fifthPoly->process = PostProcess::CellShading;
 	postProcessTing.push_back(fifthPoly);
 }
-
 
 
 // Prepare the scene
@@ -661,6 +653,7 @@ bool InitScene()
 
 	createPolys();
 
+	gPostProcessingConstants.kernalSize = 3;
 
 	return true;
 }
@@ -992,10 +985,14 @@ void SelectPostProcessShaderAndTextures(PostProcess postProcess, int index)
 
 		}
 
+		//gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[0], gDepthStencil);
+		//gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[4]);
+		//gD3DContext->PSSetSamplers(0, 1, &gPointSampler); // Use point sampling (no bilinear, trilinear, mip-mapping etc. for most post-processes)
+
 
 
 		gD3DContext->PSSetShader(gBloomPostProcess, nullptr, 0);
-		gD3DContext->PSSetSamplers(1, 1, &gTrilinearSampler);
+		
 
 		gPostProcessingConstants.area2DTopLeft = { 0, 0 }; // Top-left of entire screen
 		gPostProcessingConstants.area2DSize = { 1, 1 }; // Full size of screen
@@ -1015,7 +1012,7 @@ void SelectPostProcessShaderAndTextures(PostProcess postProcess, int index)
 		gD3DContext->OMSetRenderTargets(1, &gBackBufferRenderTarget, gDepthStencil);
 
 
-		//gD3DContext->Draw(4, 0);
+		gD3DContext->Draw(4, 0);
 
 		ID3D11ShaderResourceView* nullSRV = nullptr;
 		gD3DContext->PSSetShaderResources(0, 1, &nullSRV);

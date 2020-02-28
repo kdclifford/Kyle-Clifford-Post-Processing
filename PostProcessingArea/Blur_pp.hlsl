@@ -26,16 +26,7 @@ SamplerState TrilinearWrap : register(s1);
 
 // Post-processing shader that tints the scene texture to a given colour
 float4 main(PostProcessingInput input) : SV_Target
-{
-    //float blur = gBlurLevel;
-    //if (blur > 100.0f)
-    //{
-    //    blur = 100.0f;
-    //}
-    //else if (blur < 0.0f)
-    //{
-    //    blur = 0.0f;
-    //}    
+{   
     const int kernalSize = 256;
     float GKernel[kernalSize];
     
@@ -79,37 +70,23 @@ float4 main(PostProcessingInput input) : SV_Target
     //}
     
     
-        float xPixel = (1 / gViewportWidth);
-    float yPixel = (1 / gViewportHeight);
+    float xPixel = (1 / gViewportWidth);
     
     float3 ppColour = SceneTexture.Sample(PointSample, input.sceneUV) * GKernel[((oddSize - 1) / 2) + 1];
     float3 FragmentColor = float3(0.0f, 0.0f, 0.0f);
 
-        int offset = 1;
+    int offset = 1;
     
     for (int i = ((oddSize - 1) / 2) + 1; i < oddSize; ++i)
     {
         
         FragmentColor += (SceneTexture.Sample(PointSample, input.sceneUV + float2(xPixel * offset, 0.0f)) * GKernel[i] +
-         SceneTexture.Sample(PointSample, input.sceneUV - float2(xPixel * offset, 0.0f)) * GKernel[i]); //;+
-         //SceneTexture.Sample(TrilinearWrap, input.sceneUV + float2(0.0f, yPixel * offset[i])) * weight[i] +
-         //SceneTexture.Sample(TrilinearWrap, input.sceneUV + float2(0.0f, -yPixel * offset[i])) * weight[i]);
+         SceneTexture.Sample(PointSample, input.sceneUV - float2(xPixel * offset, 0.0f)) * GKernel[i]);
+
         offset++;
-        //FragmentColor /= 6;
-        
     }
-    
-
-    float3 orginal = SceneTexture.Sample(PointSample, input.sceneUV);
-    
+        
     ppColour += FragmentColor;
-    
-    
-    
-    //return (1);
-    return float4(ppColour, 1.0f);
-    
-    
 
-   // return float4(outputColour, 0.4f);
+    return float4(ppColour, 1.0f);
 }

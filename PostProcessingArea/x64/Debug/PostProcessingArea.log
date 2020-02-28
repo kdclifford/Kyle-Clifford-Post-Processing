@@ -1,11 +1,14 @@
-﻿D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\Blur_pp.hlsl(85,12-104): warning X3206: implicit truncation of vector type
-D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\Blur_pp.hlsl(90,14): warning X3078: 'i': loop control variable conflicts with a previous declaration in the outer scope; most recent declaration will be used
-D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\Blur_pp.hlsl(93,9): warning X3206: implicit truncation of vector type
-D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\Blur_pp.hlsl(103,12-68): warning X3206: implicit truncation of vector type
-D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\Blur_pp.hlsl(44,9-23): warning X3556: integer modulus may be much slower, try using uints if possible.
-D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\Blur_pp.hlsl(52,16-26): warning X3556: integer divides may be much slower, try using uints if possible.
-D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\Blur_pp.hlsl(85,82-98): warning X3556: integer divides may be much slower, try using uints if possible.
-D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\Blur_pp.hlsl(90,19-35): warning X3556: integer divides may be much slower, try using uints if possible.
-  
-  compilation object save succeeded; see D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\Blur_pp.cso
+﻿  Scene.cpp
+D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\Scene.cpp(273,13): warning C4244:  'initializing': conversion from 'double' to 'float', possible loss of data
+D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\Scene.cpp(273,8): warning C4101:  'r': unreferenced local variable
+D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\Scene.cpp(600,77): warning C4305:  'argument': truncation from 'double' to 'float'
+D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\Scene.cpp(1856,26): warning C4244:  '=': conversion from 'int' to 'float', possible loss of data
+D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\Scene.cpp(1857,26): warning C4244:  '=': conversion from 'int' to 'float', possible loss of data
+D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\Scene.cpp(1862,27): warning C4244:  '=': conversion from 'int' to 'float', possible loss of data
+D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\Scene.cpp(1863,27): warning C4244:  '=': conversion from 'int' to 'float', possible loss of data
+D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\Scene.cpp(2018,26): warning C4244:  '=': conversion from 'int' to 'float', possible loss of data
+D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\Scene.cpp(2019,26): warning C4244:  '=': conversion from 'int' to 'float', possible loss of data
+D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\Scene.cpp(2028,27): warning C4244:  '=': conversion from 'int' to 'float', possible loss of data
+D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\Scene.cpp(2029,27): warning C4244:  '=': conversion from 'int' to 'float', possible loss of data
+D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\Scene.cpp(2082,79): warning C4305:  'argument': truncation from 'double' to 'float'
   PostProcessingArea.vcxproj -> D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\\PostProcessingArea.exe

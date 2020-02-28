@@ -42,7 +42,7 @@ float4 main(PostProcessingInput input) : SV_Target
     //}
     
     
-        orignal += SceneTexture.Sample(TrilinearWrap, input.sceneUV);
+    orignal = (orignal + SceneTexture.Sample(PointSample, input.sceneUV));
 
     
 
