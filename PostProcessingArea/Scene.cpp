@@ -69,17 +69,18 @@ enum class PostProcessMode
 	Polygon,
 };
 
-const int KernalMaxSize = 64;
-float GKernel[KernalMaxSize];
+const int KernelMaxSize = 64;
+float GKernel[KernelMaxSize];
 
 auto gCurrentPostProcess = PostProcess::None;
 auto gTvPostProcess = PostProcess(rand() % int(PostProcess::AmountOfPosts) + int(PostProcess::None));
 std::vector<PostProcess> currentList;
+std::vector<PostProcess> TVList;
 //std::vector<PostProcess> polyList{ PostProcess::Tint, PostProcess::Spiral, PostProcess::Retro, PostProcess::Tint, PostProcess::UnderWater, };
 auto gCurrentPostProcessMode = PostProcessMode::Fullscreen;
 
 //********************
-void ImagePostProcessing(PostProcess postProcess, int Target, int ResourseOutput);
+void ImagePostProcessing(PostProcess postProcess, int Target, int ResourseOutput, int pass);
 void FullScreenPostProcess(PostProcess postProcess, int pass);
 
 // Constants controlling speed of movement/rotation (measured in units per second because we're using frame time)
@@ -135,7 +136,7 @@ class Poly
 public:
 	std::array<CVector3, 4> points; // C++ strangely needs an extra pair of {} here... only for std:array...
 	CMatrix4x4 polyMatrix;
-	PostProcess process;
+	std::vector<PostProcess> process;
 	float distance;
 	//CVector3 position;
 };
@@ -151,7 +152,9 @@ ColourRGBA gBackgroundColor = { 0.3f, 0.3f, 0.4f, 1.0f };
 
 // Variables controlling light1's orbiting of the cube
 const float gLightOrbitRadius = 20.0f;
+const float gPortalOrbitRadius = 160.0f;
 const float gLightOrbitSpeed = 0.7f;
+const float gPortalOrbitSpeed = 0.02f;
 
 float gSpotlightConeAngle = 90.0f; // Spot light cone angle (degrees), like the FOV (field-of-view) of the spot light
 
@@ -257,9 +260,9 @@ CMatrix4x4 CalculateLightProjectionMatrix(int lightIndex)
 
 void CalculateWeights()
 {
-	int oddSize = KernalMaxSize;
+	int oddSize = gPostProcessingConstants.kernalSize;
 
-	if (KernalMaxSize % 2 == 0)
+	if (oddSize % 2 == 0)
 	{
 		oddSize--;
 	}
@@ -293,7 +296,7 @@ void CalculateWeights()
 	// send Kernel to postprocessing constants 
 	for (int i = 0; i < oddSize; ++i)
 	{
-		gPostProcessingConstants.weights[i] = GKernel[i];
+		gPostProcessingConstants.weights[i].x = GKernel[i];
 	}
 }
 
@@ -501,7 +504,7 @@ void createPolys()
 	//polyMatrix.GetPosition
 
 	firstPoly->polyMatrix.SetPosition(CVector3(gWall->Position().x, gWall->Position().y + 25, gWall->Position().z));
-	firstPoly->process = PostProcess::Burn;
+	firstPoly->process.push_back(PostProcess::Burn);
 
 	postProcessTing.push_back(firstPoly);
 
@@ -519,7 +522,7 @@ void createPolys()
 	//polyMatrix.GetPosition
 
 	secondPoly->polyMatrix.SetPosition(CVector3(gWall2->Position().x + 15, gWall2->Position().y + 25, gWall2->Position().z));
-	secondPoly->process = PostProcess::UnderWater;
+	secondPoly->process.push_back(PostProcess::UnderWater);
 
 	postProcessTing.push_back(secondPoly);
 	//***********************3
@@ -532,7 +535,7 @@ void createPolys()
 	//polyMatrix.GetPosition
 
 	thirdPoly->polyMatrix.SetPosition(CVector3(gWall2->Position().x - 15, gWall2->Position().y + 25, gWall2->Position().z));
-	thirdPoly->process = PostProcess::Retro;
+	thirdPoly->process.push_back(PostProcess::Retro);
 	postProcessTing.push_back(thirdPoly);
 	//***********************4
 
@@ -546,7 +549,7 @@ void createPolys()
 
 	forthPoly->polyMatrix.SetPosition(CVector3(gWall2->Position().x - 40, gWall2->Position().y + 25, gWall2->Position().z));
 
-	forthPoly->process = PostProcess::Spiral;
+	forthPoly->process.push_back(PostProcess::Spiral);
 	postProcessTing.push_back(forthPoly);
 	//***********************5
 
@@ -559,7 +562,7 @@ void createPolys()
 	//polyMatrix.GetPosition
 
 	fifthPoly->polyMatrix.SetPosition(CVector3(gWall2->Position().x + 45, gWall2->Position().y + 25, gWall2->Position().z));
-	fifthPoly->process = PostProcess::CellShading;
+	fifthPoly->process.push_back(PostProcess::CellShading);
 	postProcessTing.push_back(fifthPoly);
 }
 
@@ -648,7 +651,7 @@ bool InitScene()
 	//**** Portal camera is the view shown in the portal object's texture ****//
 	gPortalCamera = new Camera();
 	gPortalCamera->SetPosition({ 45, 70, 250 });
-	gPortalCamera->SetRotation({ ToRadians(20.0f), ToRadians(200.0f), 0 });
+	gPortalCamera->SetRotation({ ToRadians(20.0f), ToRadians(270.0f), 0 });
 
 
 	createPolys();
@@ -828,9 +831,6 @@ void RenderSceneFromCamera(Camera* camera)
 	gWall2->Render();
 
 	//************************************
-
-
-	//ImagePostProcessing(PostProcess::Tint, gSceneRenderTarget[2], gSceneTextureSRV[2]);
 
 
 	// Select which shaders to use next
@@ -1159,11 +1159,28 @@ void SelectPostProcessShaderAndTextures(PostProcess postProcess, int index)
 }
 
 // Perform a full-screen post process from "scene texture" to back buffer
-void ImagePostProcessing(PostProcess postProcess, int Target, int ResourseOutput)
+void ImagePostProcessing(PostProcess postProcess, int Target, int ResourseOutput, int pass)
 {
-	gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[Target], gPortalDepthStencilView);
-	gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[ResourseOutput]);
-	gD3DContext->PSSetSamplers(0, 1, &gPointSampler); // Use point sampling (no bilinear, trilinear, mip-mapping etc. for most post-processes)
+	//gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[Target], gPortalDepthStencilView);
+	//gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[ResourseOutput]);
+	//gD3DContext->PSSetSamplers(0, 1, &gPointSampler); // Use point sampling (no bilinear, trilinear, mip-mapping etc. for most post-processes)
+
+
+	if (pass % 2 == 0)
+	{
+		gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[Target], gDepthStencil);
+		//gD3DContext->PSSetShaderResources(1, 1, &gDepthShaderView);
+		gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[ResourseOutput]);
+		gD3DContext->PSSetSamplers(0, 1, &gPointSampler); // Use point sampling (no bilinear, trilinear, mip-mapping etc. for most post-processes)
+	}
+	else
+	{
+		gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[ResourseOutput], gDepthStencil);
+		////gD3DContext->PSSetShaderResources(1, 1, &gDepthShaderView);
+		gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[Target]);
+		gD3DContext->PSSetSamplers(0, 1, &gPointSampler); // Use point sampling (no bilinear, trilinear, mip-mapping etc. for most post-processes)
+
+	}
 
 
 	// Using special vertex shader that creates its own data for a 2D screen quad
@@ -1213,8 +1230,21 @@ void ImagePostProcessing(PostProcess postProcess, int Target, int ResourseOutput
 	ID3D11ShaderResourceView* nullSRV = nullptr;
 	gD3DContext->PSSetShaderResources(0, 1, &nullSRV);
 
-	gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[ResourseOutput], gPortalDepthStencilView);
+	if (pass % 2 == 0)
+	{
+		gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[ResourseOutput], gDepthStencil);
+		gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[Target]);
+	}
+	else
+	{
+		gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[Target], gDepthStencil);
+		gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[ResourseOutput]);
 
+	}
+
+	SelectPostProcessShaderAndTextures(PostProcess::Copy, 0);
+
+	gD3DContext->Draw(4, 0);
 
 	//gD3DContext->PSSetShader(gCopyPostProcess, nullptr, 0);
 
@@ -1550,8 +1580,10 @@ void RenderScene()
 	// Render the scene for the portal
 	RenderSceneFromCamera(gPortalCamera);
 
-	ImagePostProcessing(gTvPostProcess, 3, 2);
-
+	for (int i = 0; i < TVList.size(); i++)
+	{
+		ImagePostProcessing(TVList[i], 3, 2, i);
+	}
 	ID3D11ShaderResourceView* nullSRV = nullptr;
 	gD3DContext->PSSetShaderResources(1, 1, &nullSRV);
 	gD3DContext->PSSetShaderResources(0, 1, &nullSRV);
@@ -1663,7 +1695,7 @@ void RenderScene()
 
 			for (int i = 0; i < postProcessTing.size(); i++)
 			{
-				PolygonPostProcess(postProcessTing[i]->process, postProcessTing[i]->points, postProcessTing[i]->polyMatrix);
+				PolygonPostProcess(postProcessTing[i]->process[0], postProcessTing[i]->points, postProcessTing[i]->polyMatrix);
 				gD3DContext->PSSetShaderResources(0, 1, &nullSRV);
 			}
 		}
@@ -1675,7 +1707,6 @@ void RenderScene()
 
 	}
 
-	//ImagePostProcessing(gTvPostProcess, 3, 2);
 	//IMGUI
 	//*******************************
 	// Draw ImGUI interface
@@ -1753,7 +1784,7 @@ void RenderScene()
 		gPostProcessingConstants.tintColour2.z = color2.z;
 	}
 
-	ImGui::SliderInt("Blur", &gPostProcessingConstants.kernalSize, 3, KernalMaxSize);
+	ImGui::SliderInt("Blur", &gPostProcessingConstants.kernalSize, 3, KernelMaxSize);
 	//ImGui::SliderFloat("Colour Green", &gPostProcessingConstants.tintColour.y, 0, 1);
 	//ImGui::SliderFloat("Colour Blue", &gPostProcessingConstants.tintColour.z, 0, 1);
 
@@ -1797,31 +1828,38 @@ void RenderScene()
 	{
 		if (ImGui::Button("Tint", ImVec2(100, 20)))
 		{
-			gTvPostProcess = PostProcess::Tint;
+			TVList.push_back(PostProcess::Tint);
 		}
 
 		if (ImGui::Button("Retro", ImVec2(100, 20)))
 		{
-			gTvPostProcess = PostProcess::Retro;
+			TVList.push_back(PostProcess::Retro);
 		}
 		if (ImGui::Button("Burn", ImVec2(100, 20)))
 		{
-			gTvPostProcess = PostProcess::Burn;
+			TVList.push_back(PostProcess::Burn);
 		}
 
 		if (ImGui::Button("Grey Noise", ImVec2(100, 20)))
 		{
-			gTvPostProcess = PostProcess::GreyNoise;
+			TVList.push_back(PostProcess::GreyNoise);
 		}
 
 		if (ImGui::Button("Blur", ImVec2(100, 20)))
 		{
-			gTvPostProcess = PostProcess::Blur;
+			TVList.push_back(PostProcess::Blur);
+			TVList.push_back(PostProcess::SecondBlur);
 		}
 
 		if (ImGui::Button("Water", ImVec2(100, 20)))
 		{
-			gTvPostProcess = PostProcess::UnderWater;
+			TVList.push_back(PostProcess::UnderWater);
+		}
+
+		if (ImGui::Button("Clear TV Screen", ImVec2(100, 20)))
+		{
+			TVList.push_back(PostProcess::Copy);
+			TVList.clear();
 		}
 
 		ImGui::TreePop();
@@ -1937,10 +1975,13 @@ void UpdateScene(float frameTime)
 
 	if (newCamPos)
 	{
-		currentList.insert(currentList.begin(), gTvPostProcess);
-		gCamera->SetPosition(gPortalCamera->Position());
-		gCamera->SetRotation(gPortalCamera->Rotation());
-		gTvPostProcess = PostProcess(rand() % int(PostProcess::AmountOfPosts) + int(PostProcess::None));
+		for (int i = TVList.size() - 1; i > 0; i--)
+		{
+			currentList.insert(currentList.begin(), TVList[i]);
+			gCamera->SetPosition(gPortalCamera->Position());
+			gCamera->SetRotation(gPortalCamera->Rotation());
+			//gTvPostProcess = PostProcess(rand() % int(PostProcess::AmountOfPosts) + int(PostProcess::None));
+		}
 	}
 
 
@@ -2005,9 +2046,13 @@ void UpdateScene(float frameTime)
 
 	// Orbit one light - a bit of a cheat with the static variable [ask the tutor if you want to know what this is]
 	static float lightRotate = 0.0f;
+	static float portalRotate = 0.0f;
 	static bool go = true;
 	gLights[0].model->SetPosition({ 20 + cos(lightRotate) * gLightOrbitRadius, 10, 20 + sin(lightRotate) * gLightOrbitRadius });
+	gPortalCamera->SetPosition({ 0 + cos(portalRotate * 7) * gPortalOrbitRadius, 40, 0 + sin(portalRotate * 7) * gPortalOrbitRadius });
+	gPortalCamera->SetRotation({ gPortalCamera->Rotation().x, 40 + cos(-portalRotate / 2.8f) * -gPortalOrbitRadius, 0 });
 	if (go)  lightRotate -= gLightOrbitSpeed * frameTime;
+	if (go)  portalRotate -= gPortalOrbitSpeed * frameTime;
 	if (KeyHit(Key_L))  go = !go;
 
 	// Control of camera

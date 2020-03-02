@@ -103,7 +103,7 @@ cbuffer PerFrameConstants : register(b0) // The b0 gives this constant buffer th
 
 
 static const int MAX_BONES = 64;
-static const int MAX_WEIGHTS = 64;
+static const int MAX_WEIGHTS = 256;
 
 // If we have multiple models then we need to update the world matrix from C++ to GPU multiple times per frame because we
 // only have one world matrix here. Because this data is updated more frequently it is kept in a different buffer for better performance.
@@ -179,8 +179,8 @@ cbuffer PostProcessingConstants : register(b1)
     int gKernalSize;
     float3 paddingL;
     
-    float gWeights[MAX_WEIGHTS];
-    //float3 paddingM[MAX_WEIGHTS];
+    float4 gWeights[MAX_WEIGHTS];
+    //float paddingM[MAX_WEIGHTS * 3];
     
 }
 

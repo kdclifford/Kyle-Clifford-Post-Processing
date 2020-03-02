@@ -48,35 +48,35 @@ float4 main(PostProcessingInput input) : SV_Target
 
     }        
         
-    int mean = oddSize / 2;
-	// intialising standard deviation to 1.0 
-    float sum = 0;
-    float sigma = 100;
-    float r, s = 2.0 * sigma * sigma;
+ //   int mean = oddSize / 2;
+	//// intialising standard deviation to 1.0 
+ //   float sum = 0;
+ //   float sigma = 100;
+ //   float r, s = 2.0 * sigma * sigma;
 
-	// sum is for normalization 
+	//// sum is for normalization 
 
 
-	// generating 5x5 kernel 
-    for (int x = 0; x < oddSize; x++)
-    {
-        GKernel[x] = (float) exp(-0.5 * pow((x - mean) / sigma, 2.0)) / (sigma * sqrt(2 * 3.1415f));
-		// Accumulate the kernel values
-        sum += GKernel[x];
-    }
+	//// generating 5x5 kernel 
+ //   for (int x = 0; x < oddSize; x++)
+ //   {
+ //       GKernel[x] = (float) exp(-0.5 * pow((x - mean) / sigma, 2.0)) / (sigma * sqrt(2 * 3.1415f));
+	//	// Accumulate the kernel values
+ //       sum += GKernel[x];
+ //   }
 
-	// normalising the Kernel 
+	//// normalising the Kernel 
+ //   for (int i = 0; i < oddSize; ++i)
+ //   {
+ //       GKernel[i] /= sum;
+ //   }
+
+
+
     for (int i = 0; i < oddSize; ++i)
     {
-        GKernel[i] /= sum;
+        GKernel[i] = gWeights[i].x;
     }
-
-
-
-   // for (int i = 0; i < oddSize; ++i)
-   //{
-   //    GKernel[i] = gWeights[i];
-   //}    
 
     float yPixel = (1 / gViewportHeight);
 

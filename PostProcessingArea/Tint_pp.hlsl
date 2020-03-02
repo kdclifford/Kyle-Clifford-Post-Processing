@@ -62,18 +62,20 @@ float4 main(PostProcessingInput input) : SV_Target
     
     float3 RGB;
     
-    RGB.r = lerp(gTintColour.r, 0.0f, input.sceneUV.y);
-    RGB.g = lerp(gTintColour.g, 0.0f, input.sceneUV.y);
-    RGB.b = lerp(0.0f, gTintColour.b, input.sceneUV.y);
+    RGB.r = lerp(gTintColour.r, gTintColour2.r, input.sceneUV.y);
+    RGB.g = lerp(gTintColour.g, gTintColour2.g, input.sceneUV.y);
+    RGB.b = lerp(gTintColour.b, gTintColour2.b, input.sceneUV.y);
+    
+    float3 colour = (SceneTexture.Sample(PointSample, input.sceneUV).rgb) * RGB;
     
     // Convert an RGB colour to a HSL colour
 
  // Fill in the correct code here for question 4, the functions Min and Max above will help
     
     // rgb to hsl*****************************
-    float r = RGB.r / 255.0f;
-    float g = RGB.g / 255.0f;
-    float b = RGB.b / 255.0f;
+    float r = colour.r / 255.0f;
+    float g = colour.g / 255.0f;
+    float b = colour.b / 255.0f;
 
     float min = Min(Min(r, g), b);
     float max = Max(Max(r, g), b);
@@ -170,7 +172,7 @@ float4 main(PostProcessingInput input) : SV_Target
     
   
     
-    float3 colour = (SceneTexture.Sample(PointSample, input.sceneUV).rgb) * RGB;
+   
     
     	// Calculate alpha to display the effect in a softened circle, could use a texture rather than calculations for the same task.
 	// Uses the second set of area texture coordinates, which range from (0,0) to (1,1) over the area being processed
@@ -179,5 +181,5 @@ float4 main(PostProcessingInput input) : SV_Target
     float centreLengthSq = dot(centreVector, centreVector);
     float alpha = 1.0f - saturate((centreLengthSq - 0.25f + softEdge) / softEdge);
 	// Got the RGB from the scene texture, set alpha to 1 for final output
-    return float4(colour, 1.0f);
+    return float4(RGB, 1.0f);
 }
