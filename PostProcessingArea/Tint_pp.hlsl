@@ -123,8 +123,9 @@ float4 main(PostProcessingInput input) : SV_Target
 
 //// Convert a HSL colour to an RGB colour
 
-    
+    float SinY = sin(input.areaUV.y + gUnderWaterLevel);
 
+    H *= SinY;
 
     float newR = 0;
 
@@ -140,14 +141,14 @@ float4 main(PostProcessingInput input) : SV_Target
     {
         float hue;
         float v1, v2;
-        if (H * gHueTimer > 0)
-        {
-            hue = (float) (H * gHueTimer) / 360;
-        }
-        else
-        {
+        //if (H * SinY > 0)
+        //{
+        //    hue = (float) (H * SinY) / 360;
+        //}
+        //else
+        //{
             hue = (float) H / 360;
-        }
+        //}
         
         v2 = (L < 0.5) ? (L * (1 + S)) : ((L + S) - (L * S));
         v1 = 2 * L - v2;

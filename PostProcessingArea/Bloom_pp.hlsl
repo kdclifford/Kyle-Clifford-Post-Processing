@@ -37,6 +37,7 @@ float4 main(PostProcessingInput input) : SV_Target
     
     if (pixelAverage < 0.6f)
     {
+       // orignal = float3(1, 0, 0);
         discard;
 
     }
