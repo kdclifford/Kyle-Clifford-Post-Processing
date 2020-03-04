@@ -22,6 +22,7 @@
 ID3D11SamplerState* gPointSampler         = nullptr;
 ID3D11SamplerState* gTrilinearSampler     = nullptr;
 ID3D11SamplerState* gAnisotropic4xSampler = nullptr;
+ID3D11SamplerState* gMirrorSample = nullptr;
 
 // Blend states allow us to switch between blending modes (none, additive, multiplicative etc.)
 ID3D11BlendState* gNoBlendingState       = nullptr;
@@ -106,6 +107,26 @@ bool CreateStates()
 		gLastError = "Error creating anisotropic 4x sampler";
 		return false;
 	}
+
+
+	////-------- Point Sampling (pixelated textures) --------////
+	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT; // Point filtering
+	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_MIRROR;  // Clamp addressing mode for texture coordinates outside 0->1
+	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_MIRROR;  // --"--
+	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_MIRROR;  // --"--
+	samplerDesc.MaxAnisotropy = 1;                       // Number of samples used if using anisotropic filtering, more is better but max value depends on GPU
+
+	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX; // Controls how much mip-mapping can be used. These settings are full mip-mapping, the usual values
+	samplerDesc.MinLOD = 0;                 // --"--
+
+	// Then create a DirectX object for your description that can be used by a shader
+	if (FAILED(gD3DDevice->CreateSamplerState(&samplerDesc, &gMirrorSample)))
+	{
+		gLastError = "Error creating point sampler";
+		return false;
+	}
+
+
 
 
     //--------------------------------------------------------------------------------------
@@ -294,6 +315,7 @@ void ReleaseStates()
     if (gAlphaBlendingState)     gAlphaBlendingState->Release();
     if (gAdditiveBlendingState)  gAdditiveBlendingState->Release();
     if (gAnisotropic4xSampler)   gAnisotropic4xSampler->Release();
+	if (gMirrorSample)   gMirrorSample->Release();
     if (gTrilinearSampler)       gTrilinearSampler->Release();
     if (gPointSampler)           gPointSampler->Release();
 }

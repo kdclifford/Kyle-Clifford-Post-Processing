@@ -14,7 +14,7 @@
 Texture2D SceneTexture : register(t0);
 SamplerState PointSample : register(s0); // We don't usually want to filter (bilinear, trilinear etc.) the scene texture when
                                           // post-processing so this sampler will use "point sampling" - no filtering
-
+SamplerState MirrorSample : register(s1);
 
 
 //--------------------------------------------------------------------------------------
@@ -48,7 +48,7 @@ float4 main(PostProcessingInput input) : SV_Target
     float2 hazeOffset = float2(SinY, SinX) * EffectStrength * ppAlpha;
 
 	// Get pixel from scene texture, offset using haze
-    float3 ppColour = SceneTexture.Sample(PointSample, input.sceneUV + hazeOffset);
+    float3 ppColour = SceneTexture.Sample(MirrorSample, input.sceneUV + hazeOffset);
     
 	// Adjust alpha on a sine wave - better to have it nearer to 1.0 (but don't allow it to exceed 1.0)
     ppAlpha *= saturate(SinX * SinY * 0.33f + 0.55f);

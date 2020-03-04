@@ -947,6 +947,7 @@ void SelectPostProcessShaderAndTextures(PostProcess postProcess, int index)
 	else if (postProcess == PostProcess::UnderWater)
 	{
 		gD3DContext->PSSetShader(gUnderWaterPostProcess, nullptr, 0);
+		gD3DContext->PSSetSamplers(1, 1, &gMirrorSample);
 	}
 
 	else if (postProcess == PostProcess::Blur)
@@ -1513,6 +1514,22 @@ void RenderScene()
 		{
 			if (gCurrentPostProcessMode == PostProcessMode::Fullscreen)
 			{
+				if (currentList[i] == PostProcess::Bloom)
+				{
+					if (i % 2 == 0)
+					{
+						ImagePostProcessing(PostProcess::Copy, 0, 4, 0);
+					}
+					else
+					{
+						ImagePostProcessing(PostProcess::Copy, 1, 4, 0);
+					}
+
+
+
+				}
+
+
 				FullScreenPostProcess(currentList[i], i, 0, 1);
 			}
 			//ID3D11ShaderResourceView* nullSRV = nullptr;
@@ -1569,10 +1586,7 @@ void RenderScene()
 
 	}
 
-	gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[4], gDepthStencil);
-	gD3DContext->ClearRenderTargetView(gSceneRenderTarget[4], &gBackgroundColor.r);
-	gD3DContext->ClearDepthStencilView(gDepthStencil, D3D11_CLEAR_DEPTH, 1.0f, 0);
-	RenderSceneFromCamera(gCamera);
+
 
 	//IMGUI
 	//*******************************
