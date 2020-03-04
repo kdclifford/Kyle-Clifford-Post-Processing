@@ -951,75 +951,22 @@ void SelectPostProcessShaderAndTextures(PostProcess postProcess, int index)
 
 	else if (postProcess == PostProcess::Blur)
 	{
-
 		CalculateWeights();
 		gD3DContext->PSSetShader(gBlurPostProcess, nullptr, 0);
-		//gPostProcessingConstants.kernalSize = kernalSize2;
-		gD3DContext->PSSetSamplers(1, 1, &gTrilinearSampler);
+
 	}
 
 	else if (postProcess == PostProcess::SecondBlur)
 	{
+		CalculateWeights();
 		gD3DContext->PSSetShader(gSecondBlurPostProcess, nullptr, 0);
-		gD3DContext->PSSetSamplers(1, 1, &gTrilinearSampler);
 	}
 
 	else if (postProcess == PostProcess::Bloom)
-	{
-		int pass = index;
-		//gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[4], gDepthStencil);
-
-
-		if (pass % 2 == 0)
-		{
-			gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[4], gDepthStencil);
-			gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[0]);
-			//gD3DContext->PSSetSamplers(0, 1, &gPointSampler); // Use point sampling (no bilinear, trilinear, mip-mapping etc. for most post-processes)
-			SelectPostProcessShaderAndTextures(PostProcess::Copy, 0);
-		}
-		else
-		{
-			gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[4], gDepthStencil);
-			gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[1]);
-			//gD3DContext->PSSetSamplers(0, 1, &gPointSampler); // Use point sampling (no bilinear, trilinear, mip-mapping etc. for most post-processes)
-			SelectPostProcessShaderAndTextures(PostProcess::Copy, 0);
-		}
-			gD3DContext->Draw(4, 0);
-
-			gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[4], gDepthStencil);
-			gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[5]);
-			gD3DContext->PSSetShader(gBloomPostProcess, nullptr, 0);
-
-			gD3DContext->Draw(4, 0);
-
-			gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[4], gDepthStencil);
-
-			gD3DContext->Draw(4, 0);
-
-			//gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[4], gDepthStencil);
-			//gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[4]);
-			//SelectPostProcessShaderAndTextures(PostProcess::Blur, 0);
-			//gD3DContext->Draw(4, 0);
-			////gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[1]);
-			////gD3DContext->PSSetShaderResources(1, 1, &gSceneTextureSRV[4]);
-			////gD3DContext->PSSetShader(gCombinePostProcess, nullptr, 0);
-			//gD3DContext->Draw(4, 0);
-
-		//pass++;
-		if (pass % 2 == 0)
-		{
-			gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[1], gDepthStencil);
-			gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[0]);
-			//gD3DContext->PSSetSamplers(0, 1, &gPointSampler); // Use point sampling (no bilinear, trilinear, mip-mapping etc. for most post-processes)
-		}
-		else
-		{
-			gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[0], gDepthStencil);
-			gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[1]);
-			//gD3DContext->PSSetSamplers(0, 1, &gPointSampler); // Use point sampling (no bilinear, trilinear, mip-mapping etc. for most post-processes)
-		}
-
+	{		
+		gD3DContext->PSSetShader(gBloomPostProcess, nullptr, 0);		
 	}
+	
 
 	else if (postProcess == PostProcess::Retro)
 	{
@@ -1048,8 +995,8 @@ void SelectPostProcessShaderAndTextures(PostProcess postProcess, int index)
 
 	else if (postProcess == PostProcess::Combine)
 	{
+		gD3DContext->PSSetShaderResources(1, 1, &gSceneTextureSRV[4]);
 		gD3DContext->PSSetShader(gCombinePostProcess, nullptr, 0);
-		//gD3DContext->PSSetShaderResources(1, 1, &gSceneTextureSRV[4]);
 	}
 
 }
@@ -1064,18 +1011,17 @@ void ImagePostProcessing(PostProcess postProcess, int Target, int ResourseOutput
 
 	if (pass % 2 == 0)
 	{
-		gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[Target], gDepthStencil);
+		gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[ResourseOutput], gDepthStencil);
 		//gD3DContext->PSSetShaderResources(1, 1, &gDepthShaderView);
-		gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[ResourseOutput]);
+		gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[Target]);
 		gD3DContext->PSSetSamplers(0, 1, &gPointSampler); // Use point sampling (no bilinear, trilinear, mip-mapping etc. for most post-processes)
 	}
 	else
 	{
-		gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[ResourseOutput], gDepthStencil);
+		gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[Target], gDepthStencil);
 		////gD3DContext->PSSetShaderResources(1, 1, &gDepthShaderView);
-		gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[Target]);
+		gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[ResourseOutput]);
 		gD3DContext->PSSetSamplers(0, 1, &gPointSampler); // Use point sampling (no bilinear, trilinear, mip-mapping etc. for most post-processes)
-
 	}
 
 
@@ -1128,17 +1074,17 @@ void ImagePostProcessing(PostProcess postProcess, int Target, int ResourseOutput
 
 	if (pass % 2 == 0)
 	{
-		gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[ResourseOutput], gDepthStencil);
-		gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[Target]);
+		gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[Target], gDepthStencil);
+		gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[ResourseOutput]);
 	}
 	else
 	{
-		gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[Target], gDepthStencil);
-		gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[ResourseOutput]);
+		gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[ResourseOutput], gDepthStencil);
+		gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[Target]);
 
 	}
 
-	SelectPostProcessShaderAndTextures(PostProcess::Copy, 0);
+	//SelectPostProcessShaderAndTextures(PostProcess::Copy, 0);
 
 	gD3DContext->Draw(4, 0);
 
@@ -1148,7 +1094,7 @@ void ImagePostProcessing(PostProcess postProcess, int Target, int ResourseOutput
 
 
 // Perform a full-screen post process from "scene texture" to back buffer
-void FullScreenPostProcess(PostProcess postProcess, int pass)
+void FullScreenPostProcess(PostProcess postProcess, int pass, int firstTexture, int secondTexture)
 {
 	//// Select the back buffer to use for rendering. Not going to clear the back-buffer because we're going to overwrite it all
 	//gD3DContext->OMSetRenderTargets(1, &gBackBufferRenderTarget, gDepthStencil);
@@ -1179,16 +1125,16 @@ void FullScreenPostProcess(PostProcess postProcess, int pass)
 
 	if (pass % 2 == 0)
 	{
-		gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[1], gDepthStencil);
+		gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[secondTexture], gDepthStencil);
 		//gD3DContext->PSSetShaderResources(1, 1, &gDepthShaderView);
-		gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[0]);
+		gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[firstTexture]);
 		gD3DContext->PSSetSamplers(0, 1, &gPointSampler); // Use point sampling (no bilinear, trilinear, mip-mapping etc. for most post-processes)
 	}
 	else
 	{
-		gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[0], gDepthStencil);
+		gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[firstTexture], gDepthStencil);
 		////gD3DContext->PSSetShaderResources(1, 1, &gDepthShaderView);
-		gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[1]);
+		gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[secondTexture]);
 		gD3DContext->PSSetSamplers(0, 1, &gPointSampler); // Use point sampling (no bilinear, trilinear, mip-mapping etc. for most post-processes)
 
 	}
@@ -1236,7 +1182,7 @@ void FullScreenPostProcess(PostProcess postProcess, int pass)
 void AreaPostProcess(PostProcess postProcess, CVector3 worldPoint, CVector2 areaSize)
 {
 	// First perform a full-screen copy of the scene to back-buffer
-	FullScreenPostProcess(PostProcess::Copy, 0);
+	FullScreenPostProcess(PostProcess::Copy, 0, 0, 1);
 
 
 	gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[0], gDepthStencil);
@@ -1311,7 +1257,7 @@ void AreaPostProcess(PostProcess postProcess, CVector3 worldPoint, CVector2 area
 void PolygonPostProcess(PostProcess postProcess, const std::array<CVector3, 4> & points, const CMatrix4x4& worldMatrix)
 {
 	// First perform a full-screen copy of the scene to back-buffer
-	FullScreenPostProcess(PostProcess::Copy, 0);
+	FullScreenPostProcess(PostProcess::Copy, 0, 0, 1);
 
 	gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[0], gDepthStencil);
 
@@ -1486,13 +1432,13 @@ void RenderScene()
 
 	if (TVList.empty())
 	{
-		ImagePostProcessing(PostProcess::Copy, 3, 2, 0);
+		ImagePostProcessing(PostProcess::Copy, 2, 3, 0);
 	}
 	else
 	{
 		for (int i = 0; i < TVList.size(); i++)
 		{
-			ImagePostProcessing(TVList[i], 3, 2, i);
+			ImagePostProcessing(TVList[i], 2, 3, i);
 		}
 	}
 	ID3D11ShaderResourceView* nullSRV = nullptr;
@@ -1504,11 +1450,20 @@ void RenderScene()
 	// If using post-processing then render to the scene texture, otherwise to the usual back buffer
 	// Also clear the render target to a fixed colour and the depth buffer to the far distance
 
-	//gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[4], gDepthStencil);
-	//gD3DContext->ClearRenderTargetView(gSceneRenderTarget[4], &gBackgroundColor.r);
-	//gD3DContext->ClearDepthStencilView(gDepthStencil, D3D11_CLEAR_DEPTH, 1.0f, 0);
-	//RenderSceneFromCamera(gCamera);
 
+
+	//if (!currentList.empty())
+	//{
+	//	for (int i = 0; i < currentList.size(); i++)
+	//	{
+	//		if (gCurrentPostProcessMode == PostProcessMode::Fullscreen)
+	//		{
+	//		 ImagePostProcessing(currentList[i], 5, 4, i);
+	//		}
+	//		//ID3D11ShaderResourceView* nullSRV = nullptr;
+	//		gD3DContext->PSSetShaderResources(0, 1, &nullSRV);
+	//	}
+	//}
 
 	if (!currentList.empty())
 	{
@@ -1522,8 +1477,6 @@ void RenderScene()
 	}
 
 	gD3DContext->ClearDepthStencilView(gDepthStencil, D3D11_CLEAR_DEPTH, 1.0f, 0);
-
-
 
 
 	// Setup the viewport to the size of the main window
@@ -1560,7 +1513,7 @@ void RenderScene()
 		{
 			if (gCurrentPostProcessMode == PostProcessMode::Fullscreen)
 			{
-				FullScreenPostProcess(currentList[i], i);
+				FullScreenPostProcess(currentList[i], i, 0, 1);
 			}
 			//ID3D11ShaderResourceView* nullSRV = nullptr;
 			gD3DContext->PSSetShaderResources(0, 1, &nullSRV);
@@ -1615,6 +1568,11 @@ void RenderScene()
 		gD3DContext->PSSetShaderResources(0, 1, &nullSRV);
 
 	}
+
+	gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[4], gDepthStencil);
+	gD3DContext->ClearRenderTargetView(gSceneRenderTarget[4], &gBackgroundColor.r);
+	gD3DContext->ClearDepthStencilView(gDepthStencil, D3D11_CLEAR_DEPTH, 1.0f, 0);
+	RenderSceneFromCamera(gCamera);
 
 	//IMGUI
 	//*******************************
@@ -1861,10 +1819,14 @@ void UpdateScene(float frameTime)
 	if (KeyHit(Key_3))  gCurrentPostProcess = PostProcess::Burn, currentList.push_back(gCurrentPostProcess);
 	if (KeyHit(Key_4))  gCurrentPostProcess = PostProcess::Distort, currentList.push_back(gCurrentPostProcess);
 	if (KeyHit(Key_5))  gCurrentPostProcess = PostProcess::Spiral, currentList.push_back(gCurrentPostProcess);
-	if (KeyHit(Key_6))   gCurrentPostProcess = PostProcess::HeatHaze, currentList.push_back(gCurrentPostProcess);
-	if (KeyHit(Key_7))  gCurrentPostProcess = PostProcess::Blur, currentList.push_back(gCurrentPostProcess), gCurrentPostProcess = PostProcess::SecondBlur, currentList.push_back(gCurrentPostProcess);
-	if (KeyHit(Key_8))  gCurrentPostProcess = PostProcess::Bloom, currentList.push_back(gCurrentPostProcess)/*, gCurrentPostProcess = PostProcess::Blur, currentList.push_back(gCurrentPostProcess),
-		gCurrentPostProcess = PostProcess::SecondBlur, currentList.push_back(gCurrentPostProcess)*/;
+	if (KeyHit(Key_6))  gCurrentPostProcess = PostProcess::HeatHaze, currentList.push_back(gCurrentPostProcess);
+	if (KeyHit(Key_7))  gCurrentPostProcess = PostProcess::Blur, currentList.push_back(gCurrentPostProcess), 
+		                gCurrentPostProcess = PostProcess::SecondBlur, currentList.push_back(gCurrentPostProcess);
+	
+	if (KeyHit(Key_8))  gCurrentPostProcess = PostProcess::Bloom, currentList.push_back(gCurrentPostProcess), 
+		                gCurrentPostProcess = PostProcess::Blur, currentList.push_back(gCurrentPostProcess),
+		                gCurrentPostProcess = PostProcess::SecondBlur, currentList.push_back(gCurrentPostProcess),
+		                gCurrentPostProcess = PostProcess::Combine, currentList.push_back(gCurrentPostProcess);
 	if (KeyHit(Key_9))   gCurrentPostProcess = PostProcess::Copy, currentList.push_back(gCurrentPostProcess);
 	if (KeyHit(Key_0))   gCurrentPostProcess = PostProcess::None, currentList.clear();
 	if (KeyHit(Key_Numpad0))  gCurrentPostProcess = PostProcess::Depth, currentList.push_back(gCurrentPostProcess);

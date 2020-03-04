@@ -27,9 +27,7 @@ SamplerState TrilinearWrap : register(s1);
 
 // Post-processing shader that tints the scene texture to a given colour
 float4 main(PostProcessingInput input) : SV_Target
-{
-    float bloom = gBloomLevel;
-    
+{   
     
     float3 orignal = LightSceneTexture.Sample(PointSample, input.sceneUV);
     
@@ -37,16 +35,12 @@ float4 main(PostProcessingInput input) : SV_Target
     
     //if (pixelAverage < 1.0f)
     //{
-    //    orignal = (orignal + SceneTexture.Sample(PointSample, input.sceneUV) / 2);
+    //    orignal = (orignal + SceneTexture.Sample(PointSample, input.sceneUV));
 
     //}
     
     
     orignal = (orignal + SceneTexture.Sample(PointSample, input.sceneUV));
-
-    
-
-        
     
     
     
