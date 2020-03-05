@@ -974,15 +974,14 @@ void SelectPostProcessShaderAndTextures(PostProcess postProcess, int index)
 		gD3DContext->PSSetShader(gRetroPostProcess, nullptr, 0);
 	}
 
-	//else if (postProcess == PostProcess::Depth)
-	//{
-	//	gD3DContext->OMSetRenderTargets(1, &gBackBufferRenderTarget, nullptr);
-	//	gD3DContext->PSSetShaderResources(1, 1, &gDepthShaderView);
-	//	gD3DContext->PSSetSamplers(1, 1, &gPointSampler);
-	//	gD3DContext->PSSetShader(gDepthPostProcess, nullptr, 0);
-	//	/*gD3DContext->PSSetShaderResources(1, 1, &gMovieSRV);
-	//	gD3DContext->PSSetSamplers(1, 1, &gTrilinearSampler);*/
-	//}
+	else if (postProcess == PostProcess::Depth)
+	{
+		
+		gD3DContext->PSSetSamplers(1, 1, &gPointSampler);
+		gD3DContext->PSSetShader(gDepthPostProcess, nullptr, 0);
+		/*gD3DContext->PSSetShaderResources(1, 1, &gMovieSRV);
+		gD3DContext->PSSetSamplers(1, 1, &gTrilinearSampler);*/
+	}
 
 	else if (postProcess == PostProcess::CellShading)
 	{
@@ -1845,7 +1844,11 @@ void UpdateScene(float frameTime)
 		                gCurrentPostProcess = PostProcess::Combine, currentList.push_back(gCurrentPostProcess);
 	if (KeyHit(Key_9))   gCurrentPostProcess = PostProcess::Copy, currentList.push_back(gCurrentPostProcess);
 	if (KeyHit(Key_0))   gCurrentPostProcess = PostProcess::None, currentList.clear();
-	if (KeyHit(Key_Numpad0))  gCurrentPostProcess = PostProcess::Depth, currentList.push_back(gCurrentPostProcess);
+	if (KeyHit(Key_Numpad0))  gCurrentPostProcess = PostProcess::Bloom, currentList.push_back(gCurrentPostProcess), 
+		gCurrentPostProcess = PostProcess::Depth, currentList.push_back(gCurrentPostProcess),
+		gCurrentPostProcess = PostProcess::Blur, currentList.push_back(gCurrentPostProcess),
+		gCurrentPostProcess = PostProcess::SecondBlur, currentList.push_back(gCurrentPostProcess),
+		gCurrentPostProcess = PostProcess::Combine, currentList.push_back(gCurrentPostProcess);;
 	if (KeyHit(Key_Numpad1))  gCurrentPostProcess = PostProcess::CellShading, currentList.push_back(gCurrentPostProcess);
 	if (KeyHit(Key_Numpad2))  gCurrentPostProcess = PostProcess::Invert, currentList.push_back(gCurrentPostProcess);
 	if (KeyHit(Key_Numpad3))  gCurrentPostProcess = PostProcess::Retro, currentList.push_back(gCurrentPostProcess);
@@ -1861,7 +1864,7 @@ void UpdateScene(float frameTime)
 
 	if (newCamPos)
 	{
-		for (int i = TVList.size() - 1; i > 0; i--)
+		for (int i = TVList.size() - 1; i >= 0; i--)
 		{
 			currentList.insert(currentList.begin(), TVList[i]);
 			gCamera->SetPosition(gPortalCamera->Position());

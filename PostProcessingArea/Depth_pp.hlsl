@@ -31,46 +31,46 @@ float4 main(PostProcessingInput input) : SV_Target
 {
  
                                       
-    //PostProcessingInput output;
+ //   //PostProcessingInput output;
                                       
-    // Extract diffuse material colour for this pixel from a texture. Using alpha channel here so use float4
-    float4 diffuseMapColour = SceneTexture.Sample(TexSampler, input.sceneUV);
+ //   // Extract diffuse material colour for this pixel from a texture. Using alpha channel here so use float4
+ //   float4 diffuseMapColour = SceneTexture.Sample(TexSampler, input.sceneUV);
 
-    float depthAdjust = diffuseMapColour.a;
+ //   float depthAdjust = diffuseMapColour.a;
     
-    float pixelDepth = (input.projectedPosition.z * input.projectedPosition.w - depthAdjust) / (input.projectedPosition.w - depthAdjust);
-    
-    
-    
-    //output.depth = pixelDepth;
+ //   float pixelDepth = (input.projectedPosition.z * input.projectedPosition.w - depthAdjust) / (input.projectedPosition.w - depthAdjust);
     
     
-    float2 viewportUV = input.projectedPosition.xy;
     
-    viewportUV.x /= gViewportWidth;
-    viewportUV.y /= gViewportHeight;
-    
-    float4 viewportDepth = DepthMap.Sample(PointSample, input.sceneUV);
-    
-    //viewportDepth *= input.projectedPosition.w;
-    pixelDepth *= input.projectedPosition.w;
-    
-    float depthDiff = viewportDepth - pixelDepth;
+ //   //output.depth = pixelDepth;
     
     
- //   if (depthDiff > 0.99f)
- //   {
- //       discard;
- //   }
+ //   float2 viewportUV = input.projectedPosition.xy;
     
- // //  float depthFade = saturate(depthDiff / 0.025f);
+ //   viewportUV.x /= gViewportWidth;
+ //   viewportUV.y /= gViewportHeight;
     
-	//// Combine texture alpha with particle alpha
-    float4 Ncolour = viewportDepth;
- //  // input.alpha * depthFade;
-    Ncolour.a = 1.0f; // If you increase the number of particles then you might want to reduce the 1.0f here to make them more transparent
+ //   float4 viewportDepth = DepthMap.Sample(PointSample, input.sceneUV);
+    
+ //   //viewportDepth *= input.projectedPosition.w;
+ //   pixelDepth *= input.projectedPosition.w;
+    
+ //   float depthDiff = viewportDepth - pixelDepth;
+    
+    
+ ////   if (depthDiff > 0.99f)
+ ////   {
+ ////       discard;
+ ////   }
+    
+ //// //  float depthFade = saturate(depthDiff / 0.025f);
+    
+	////// Combine texture alpha with particle alpha
+ //   float4 Ncolour = viewportDepth;
+ ////  // input.alpha * depthFade;
+ //   Ncolour.a = 1.0f; // If you increase the number of particles then you might want to reduce the 1.0f here to make them more transparent
 
-    return viewportDepth;
+ //   return viewportDepth;
     
     //int nsamples = 100;
     //float BlurStart = 0.5f;
@@ -137,5 +137,55 @@ float4 main(PostProcessingInput input) : SV_Target
     //float4 tileColor = SceneTexture.Sample(PointSample, PCenter);
     //float4 result = tileColor + cTop - cBottom;
     //return result;
+    int NUM_SAMPLES = 164;
+    
+    const float Exposure = 1.0; // Directly scale the effect (0 = no effect, 1 = full)
+    const float MyDecay = -0.0;
+    const float CircleSize = 0.5;
+    float Weight = 1.0 / float(NUM_SAMPLES);
+    float Decay = 1.0 - MyDecay / float(NUM_SAMPLES);
+    
+      	// Store initial sample.  
+    float3 originalColor =  SceneTexture.Sample(PointSample, input.sceneUV );
+  
+    float3 color = float3(0, 0, 0);
+  	// Set up illumination decay factor.  
+    float illuminationDecay = 1.0;
+    
+    float3 sampl = float3(0, 0, 0);
+    float pixelBrightness = float3(0, 0, 0);
+    https://devansh.space/screen-space-god-rays/
+  	// Evaluate summation from Equation 3 NUM_SAMPLES iterations.  
+        for (int i = 0; i < NUM_SAMPLES; i++)
+        {
+	    // Step sample location along ray.  
+            float2 uv = lerp(input.sceneUV, float2(0.5f, 0.5f), float(i) / float(NUM_SAMPLES - 1));
+   	   
+    	// Retrieve sample at new location.  
+            float3 sampl = SceneTexture.Sample(PointSample, uv);
+            pixelBrightness = (sampl.r + sampl.g + sampl.b) / 3;
+        //if (pixelBrightness > 0.7f)
+        //{
+        //    break;
+        //}
+    	// Apply sample attenuation scale/decay factors.  
+            sampl *= illuminationDecay * Weight;
+    	// Accumulate combined color.  
+            color += sampl;
+    	// Update exponential decay factor.  
+            illuminationDecay *= Decay;
+        }
+    
+    //if (pixelBrightness > 0.7f)
+    //{
+  	// Output final color with a further scale control factor.  
+        return float4(color * Exposure, 1);
+    //}
+    //else
+    //{
+    //    color = SceneTexture.Sample(PointSample, input.sceneUV);
+    //    return float4(color, 1);
+    //}
+    
     
 }

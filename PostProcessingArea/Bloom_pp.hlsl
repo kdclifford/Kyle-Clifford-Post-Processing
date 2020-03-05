@@ -39,6 +39,11 @@ float4 main(PostProcessingInput input) : SV_Target
         //discard;
 
     }
+    //else
+    //{
+    //    orignal = float3(1, 0, 0);
+
+    //}
 
         
     
