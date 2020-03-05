@@ -40,8 +40,8 @@ float4 main(PostProcessingInput input) : SV_Target
     //}
     
     
-    orignal = (orignal + SceneTexture.Sample(PointSample, input.sceneUV));
-    
+    orignal = (orignal + (SceneTexture.Sample(PointSample, input.sceneUV) * 2.5));
+	//orignal = (orignal + SceneTexture.Sample(PointSample, input.sceneUV));
     
     
     //return (1);

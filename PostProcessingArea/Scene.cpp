@@ -1840,6 +1840,8 @@ void UpdateScene(float frameTime)
 	if (KeyHit(Key_8))  gCurrentPostProcess = PostProcess::Bloom, currentList.push_back(gCurrentPostProcess), 
 		                gCurrentPostProcess = PostProcess::Blur, currentList.push_back(gCurrentPostProcess),
 		                gCurrentPostProcess = PostProcess::SecondBlur, currentList.push_back(gCurrentPostProcess),
+					  /*  gCurrentPostProcess = PostProcess::Blur, currentList.push_back(gCurrentPostProcess),
+		                gCurrentPostProcess = PostProcess::SecondBlur, currentList.push_back(gCurrentPostProcess),*/
 		                gCurrentPostProcess = PostProcess::Combine, currentList.push_back(gCurrentPostProcess);
 	if (KeyHit(Key_9))   gCurrentPostProcess = PostProcess::Copy, currentList.push_back(gCurrentPostProcess);
 	if (KeyHit(Key_0))   gCurrentPostProcess = PostProcess::None, currentList.clear();

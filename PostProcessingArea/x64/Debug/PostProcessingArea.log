@@ -1,4 +1,5 @@
-﻿D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\UnderWater_pp.hlsl(51,12-83): warning X3206: implicit truncation of vector type
+﻿D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\BloomCombine_pp.hlsl(32,12-73): warning X3206: implicit truncation of vector type
+D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\BloomCombine_pp.hlsl(43,16-80): warning X3206: implicit truncation of vector type
   
-  compilation object save succeeded; see D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\UnderWater_pp.cso
+  compilation object save succeeded; see D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\BloomCombine_pp.cso
   PostProcessingArea.vcxproj -> D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\\PostProcessingArea.exe
