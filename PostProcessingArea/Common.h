@@ -81,6 +81,12 @@ struct PerFrameConstants
     CVector3   cameraPosition;
 	float      padding3;
 
+	CVector2   light1ScreenSpacePos;
+	CVector2   padding4;
+
+	CVector2   light2ScreenSpacePos;
+	CVector2   padding5;
+
 	//CVector2   lightPixelPosition;
 	//float padding4;
 
@@ -170,6 +176,9 @@ struct PostProcessingConstants
 
 	CVector4 weights[MAX_WEIGHTS];
 	//CVector3 paddingM[MAX_WEIGHTS * 3];
+
+	bool hueOnOff;
+	CVector3 paddingM;
 
 };
 extern PostProcessingConstants gPostProcessingConstants;      // This variable holds the CPU-side constant buffer described above

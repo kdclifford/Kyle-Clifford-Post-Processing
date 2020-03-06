@@ -61,61 +61,61 @@ float4 main(PostProcessingInput input) : SV_Target
     
     
     float3 RGB;
+    float3 colour1[2] = { gTintColour, gTintColour2 };
+
     
-    RGB.r = lerp(gTintColour.r, gTintColour2.r, input.sceneUV.y);
-    RGB.g = lerp(gTintColour.g, gTintColour2.g, input.sceneUV.y);
-    RGB.b = lerp(gTintColour.b, gTintColour2.b, input.sceneUV.y);
-    
-    float3 colour = (SceneTexture.Sample(PointSample, input.sceneUV).rgb) * RGB;
+   
     
     // Convert an RGB colour to a HSL colour
-
+    if (gHueOnOff)
+    {
  // Fill in the correct code here for question 4, the functions Min and Max above will help
-    
+        for (int i = 0; i < 2; i++)
+        {
     // rgb to hsl*****************************
-    float r = colour.r / 255.0f;
-    float g = colour.g / 255.0f;
-    float b = colour.b / 255.0f;
+            float r = colour1[i].r / 255.0f;
+            float g = colour1[i].g / 255.0f;
+            float b = colour1[i].b / 255.0f;
 
-    float min = Min(Min(r, g), b);
-    float max = Max(Max(r, g), b);
-    float delta = max - min;
+            float min = Min(Min(r, g), b);
+            float max = Max(Max(r, g), b);
+            float delta = max - min;
 
-    int H;
-    float S;
-    float L = (max + min) / 2;
+            int H;
+            float S;
+            float L = (max + min) / 2;
 
-    if (delta == 0)
-    {
-        H = 0;
-        S = 0.0f;
-    }
-    else
-    {
-        S = (L <= 0.5) ? (delta / (max + min)) : (delta / (2 - max - min));
+            if (delta == 0)
+            {
+                H = 0;
+                S = 0.0f;
+            }
+            else
+            {
+                S = (L <= 0.5) ? (delta / (max + min)) : (delta / (2 - max - min));
 
-        float hue;
+                float hue;
 
-        if (r == max)
-        {
-            hue = ((g - b) / 6) / delta;
-        }
-        else if (g == max)
-        {
-            hue = (1.0f / 3) + ((b - r) / 6) / delta;
-        }
-        else
-        {
-            hue = (2.0f / 3) + ((r - g) / 6) / delta;
-        }
+                if (r == max)
+                {
+                    hue = ((g - b) / 6) / delta;
+                }
+                else if (g == max)
+                {
+                    hue = (1.0f / 3) + ((b - r) / 6) / delta;
+                }
+                else
+                {
+                    hue = (2.0f / 3) + ((r - g) / 6) / delta;
+                }
 
-        if (hue < 0)
-            hue += 1;
-        if (hue > 1)
-            hue -= 1;
+                if (hue < 0)
+                    hue += 1;
+                if (hue > 1)
+                    hue -= 1;
 
-        H = (int) (hue * 360);
-    }
+                H = (int) (hue * 360);
+            }
 
 
     
@@ -123,48 +123,50 @@ float4 main(PostProcessingInput input) : SV_Target
 
 //// Convert a HSL colour to an RGB colour
 
-    float SinY = sin(input.areaUV.y + gUnderWaterLevel);
+            float SinY = sin(input.areaUV.y + gHueTimer);
 
-    H *= SinY;
+            H *= SinY;
 
-    float newR = 0;
+            float newR = 0;
 
-    float newG = 0;
+            float newG = 0;
 
-    float newB = 0;
+            float newB = 0;
 
-    if (S == 0)
-    {
-        newR = newG = newB = (L * 255);
-    }
-    else
-    {
-        float hue;
-        float v1, v2;
+            if (S == 0)
+            {
+                newR = newG = newB = (L * 255);
+            }
+            else
+            {
+                float hue;
+                float v1, v2;
         //if (H * SinY > 0)
         //{
         //    hue = (float) (H * SinY) / 360;
         //}
         //else
         //{
-            hue = (float) H / 360;
+                hue = (float) H / 360;
         //}
         
-        v2 = (L < 0.5) ? (L * (1 + S)) : ((L + S) - (L * S));
-        v1 = 2 * L - v2;
+                v2 = (L < 0.5) ? (L * (1 + S)) : ((L + S) - (L * S));
+                v1 = 2 * L - v2;
 
-        newR = 255 * HueToRGB(v1, v2, hue + (1.0f / 3));
-        newG = 255 * HueToRGB(v1, v2, hue);
-        newB = 255 * HueToRGB(v1, v2, hue - (1.0f / 3));
+                newR = 255 * HueToRGB(v1, v2, hue + (1.0f / 3));
+                newG = 255 * HueToRGB(v1, v2, hue);
+                newB = 255 * HueToRGB(v1, v2, hue - (1.0f / 3));
+            }
+
+            colour1[i] = float3(newR, newB, newG);
+        }
     }
-
-    RGB = float3(newR, newB, newG);
-    
-
-    
+    RGB.r = lerp(colour1[0].r, colour1[1].r, input.sceneUV.y);
+    RGB.g = lerp(colour1[0].g, colour1[1].g, input.sceneUV.y);
+    RGB.b = lerp(colour1[0].b, colour1[1].b, input.sceneUV.y);
     
     
-    
+    float3 colour = (SceneTexture.Sample(PointSample, input.sceneUV).rgb) * RGB;
     
 
 
@@ -182,5 +184,5 @@ float4 main(PostProcessingInput input) : SV_Target
     float centreLengthSq = dot(centreVector, centreVector);
     float alpha = 1.0f - saturate((centreLengthSq - 0.25f + softEdge) / softEdge);
 	// Got the RGB from the scene texture, set alpha to 1 for final output
-    return float4(RGB, 1.0f);
+    return float4(colour, 1.0f);
 }

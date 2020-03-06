@@ -303,6 +303,17 @@ void CMatrix4x4::FaceTarget(const CVector3& target)
 }
 
 
+void CMatrix4x4::SetRotation(CVector3 rotation, CMatrix4x4& current)
+{
+	// To put rotation angles into a matrix we need to build the matrix from scratch to make sure we retain existing scaling and position
+	CMatrix4x4 newMat = MatrixScaling(current.GetScale()) *
+		MatrixRotationZ(rotation.z) * MatrixRotationX(rotation.x) * MatrixRotationY(rotation.y) *
+		MatrixTranslation(current.GetPosition());
+
+	current = newMat;
+}
+
+
 // Return the rotation stored in this matrix as Euler angles
 CVector3 CMatrix4x4::GetEulerAngles()
 {

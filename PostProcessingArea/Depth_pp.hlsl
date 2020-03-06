@@ -139,6 +139,8 @@ float4 main(PostProcessingInput input) : SV_Target
     //return result;
     int NUM_SAMPLES = 164;
     
+    
+    
     const float Exposure = 1.0; // Directly scale the effect (0 = no effect, 1 = full)
     const float MyDecay = -0.0;
     const float CircleSize = 0.5;
@@ -146,7 +148,7 @@ float4 main(PostProcessingInput input) : SV_Target
     float Decay = 1.0 - MyDecay / float(NUM_SAMPLES);
     
       	// Store initial sample.  
-    float3 originalColor =  SceneTexture.Sample(PointSample, input.sceneUV );
+    float3 originalColor = SceneTexture.Sample(PointSample, input.sceneUV);
   
     float3 color = float3(0, 0, 0);
   	// Set up illumination decay factor.  
@@ -154,38 +156,114 @@ float4 main(PostProcessingInput input) : SV_Target
     
     float3 sampl = float3(0, 0, 0);
     float pixelBrightness = float3(0, 0, 0);
-    https://devansh.space/screen-space-god-rays/
+    //https://devansh.space/screen-space-god-rays/
+    
+    float2 newuv = -input.sceneUV + float2(1, 1);
   	// Evaluate summation from Equation 3 NUM_SAMPLES iterations.  
-        for (int i = 0; i < NUM_SAMPLES; i++)
-        {
+    for (int i = 0; i < NUM_SAMPLES; i++)
+    {
 	    // Step sample location along ray.  
-            float2 uv = lerp(input.sceneUV, float2(0.5f, 0.5f), float(i) / float(NUM_SAMPLES - 1));
-   	   
+        float2 uv = lerp(input.sceneUV, float2(0.5f, 0.5f), float(i) / float(NUM_SAMPLES - 1));
+       // uv = -uv;
     	// Retrieve sample at new location.  
-            float3 sampl = SceneTexture.Sample(PointSample, uv);
-            pixelBrightness = (sampl.r + sampl.g + sampl.b) / 3;
+        float3 sampl = SceneTexture.Sample(PointSample, uv);
+        pixelBrightness = (sampl.r + sampl.g + sampl.b) / 3;
         //if (pixelBrightness > 0.7f)
         //{
         //    break;
         //}
     	// Apply sample attenuation scale/decay factors.  
-            sampl *= illuminationDecay * Weight;
+        sampl *= illuminationDecay * Weight;
     	// Accumulate combined color.  
-            color += sampl;
+        color += sampl;
     	// Update exponential decay factor.  
-            illuminationDecay *= Decay;
-        }
+        illuminationDecay *= Decay;
+    }
     
-    //if (pixelBrightness > 0.7f)
+    //for (int i = 0; i < NUM_SAMPLES; i++)
     //{
-  	// Output final color with a further scale control factor.  
-        return float4(color * Exposure, 1);
-    //}
-    //else
-    //{
-    //    color = SceneTexture.Sample(PointSample, input.sceneUV);
-    //    return float4(color, 1);
+	   // // Step sample location along ray.  
+    //    float2 uv = lerp(input.sceneUV, float2(0.5f, 0.5f), float(i) / float(NUM_SAMPLES - 1));
+    //   // uv = -uv;
+    //	// Retrieve sample at new location.  
+    //    float3 sampl = SceneTexture.Sample(PointSample, uv);
+    //    pixelBrightness = (sampl.r + sampl.g + sampl.b) / 3;
+    //    //if (pixelBrightness > 0.7f)
+    //    //{
+    //    //    break;
+    //    //}
+    //	// Apply sample attenuation scale/decay factors.  
+    //    sampl *= illuminationDecay * Weight;
+    //	// Accumulate combined color.  
+    //    color += sampl;
+    //	// Update exponential decay factor.  
+    //    illuminationDecay *= Decay;
     //}
     
+    //for (int i = 0; i < NUM_SAMPLES; i++)
+    //{
+	   // // Step sample location along ray.  
+    //    float2 uv = lerp(input.sceneUV, float2(0.0f, 0.5f), float(i) / float(NUM_SAMPLES - 1));
+    //   // uv = -uv;
+    //	// Retrieve sample at new location.  
+    //    float3 sampl = SceneTexture.Sample(PointSample, uv);
+    //    pixelBrightness = (sampl.r + sampl.g + sampl.b) / 3;
+    //    //if (pixelBrightness > 0.7f)
+    //    //{
+    //    //    break;
+    //    //}
+    //	// Apply sample attenuation scale/decay factors.  
+    //    sampl *= illuminationDecay * Weight;
+    //	// Accumulate combined color.  
+    //    color += sampl;
+    //	// Update exponential decay factor.  
+    //    illuminationDecay *= Decay;
+    //}
+    
+    
+    //for (int i = 0; i < NUM_SAMPLES; i++)
+    //{
+	   // // Step sample location along ray.  
+    //    float2 uv = lerp(input.sceneUV, float2(0.5f, 0.0f), float(i) / float(NUM_SAMPLES - 1));
+    //   // uv = -uv;
+    //	// Retrieve sample at new location.  
+    //    float3 sampl = SceneTexture.Sample(PointSample, uv);
+    //    pixelBrightness = (sampl.r + sampl.g + sampl.b) / 3;
+    //    //if (pixelBrightness > 0.7f)
+    //    //{
+    //    //    break;
+    //    //}
+    //	// Apply sample attenuation scale/decay factors.  
+    //    sampl *= illuminationDecay * Weight;
+    //	// Accumulate combined color.  
+    //    color += sampl;
+    //	// Update exponential decay factor.  
+    //    illuminationDecay *= Decay;
+    //}
+    
+    //for (int i = 0; i < NUM_SAMPLES; i++)
+    //{
+	   // // Step sample location along ray.  
+    //    float2 uv = lerp(input.sceneUV, float2(1.0f, 1.0f), float(i) / float(NUM_SAMPLES - 1));
+    //   // uv = -uv;
+    //	// Retrieve sample at new location.  
+    //    float3 sampl = SceneTexture.Sample(PointSample, uv);
+    //    pixelBrightness = (sampl.r + sampl.g + sampl.b) / 3;
+    //    //if (pixelBrightness > 0.7f)
+    //    //{
+    //    //    break;
+    //    //}
+    //	// Apply sample attenuation scale/decay factors.  
+    //    sampl *= illuminationDecay * Weight;
+    //	// Accumulate combined color.  
+    //    color += sampl;
+    //	// Update exponential decay factor.  
+    //    illuminationDecay *= Decay;
+    //}
+    
+    
+    return float4(color * Exposure, 1);
+    
+    //************************** 
     
 }

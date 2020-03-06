@@ -80,7 +80,7 @@ public:
 		e30 = p.x;
 		e31 = p.y;
 		e32 = p.z;
-	}
+	}	
 
 
 	// Post-multiply this matrix by the given one
@@ -96,7 +96,7 @@ public:
     // handedness (right-handed Z axis will face away from target)
     // Will retain the matrix's current scaling
     void FaceTarget(const CVector3& target);
-
+	void SetRotation(CVector3 rotation, CMatrix4x4& current);
 
     // Transpose the matrix (rows become columns). There are two ways to store a matrix, by rows or by columns.
     // Different apps use different methods. Use Transpose to swap when necessary.

@@ -94,6 +94,11 @@ cbuffer PerFrameConstants : register(b0) // The b0 gives this constant buffer th
     float3   gCameraPosition;
     float    padding3;
     
+    float2   gLight1ScreenSpacePos;
+    float2   padding4;
+             
+    float2   gLight2ScreenSpacePos;
+    float2   padding5;
     
     //float2 gLightPixelPosition;
     //float padding4;
@@ -181,6 +186,9 @@ cbuffer PostProcessingConstants : register(b1)
     
     float4 gWeights[MAX_WEIGHTS];
     //float paddingM[MAX_WEIGHTS * 3];
+    
+    bool gHueOnOff;
+    float3 paddingM;
     
 }
 

@@ -21,7 +21,7 @@ ID3D11VertexShader*   gPixelLightingVertexShader  = nullptr;
 ID3D11PixelShader*    gTintedTexturePixelShader   = nullptr;
 ID3D11PixelShader*    gPixelLightingPixelShader   = nullptr;
 ID3D11PixelShader*    gPortalPixelShader		  = nullptr;
-ID3D11PixelShader*  gDepthOnlyPixelShader  = nullptr;
+ID3D11PixelShader*    gDepthOnlyPixelShader       = nullptr;
 
 //*******************************
 //**** Post-processing shader DirectX objects
@@ -41,7 +41,7 @@ ID3D11PixelShader*  gSecondBlurPostProcess = nullptr;
 ID3D11PixelShader*  gBloomPostProcess	   = nullptr;
 ID3D11PixelShader*  gRetroPostProcess	   = nullptr;
 ID3D11PixelShader*  gDepthPostProcess	   = nullptr;
-ID3D11PixelShader*  gCellPostProcess	   = nullptr;
+ID3D11PixelShader*  gCelShadingPostProcess = nullptr;
 ID3D11PixelShader*  gInvertPostProcess	   = nullptr;
 ID3D11PixelShader*  gCombinePostProcess    = nullptr;
 
@@ -60,8 +60,8 @@ bool LoadShaders()
 	gPixelLightingVertexShader    = LoadVertexShader  ("PixelLighting_vs"   );
 	gTintedTexturePixelShader     = LoadPixelShader   ("TintedTexture_ps"   );
 	gPixelLightingPixelShader     = LoadPixelShader   ("PixelLighting_ps"   );
-	gPortalPixelShader = LoadPixelShader   ("Portal_ps"          );
-	gDepthOnlyPixelShader = LoadPixelShader("DepthOnly_ps");
+	gPortalPixelShader            = LoadPixelShader   ("Portal_ps"          );
+	gDepthOnlyPixelShader         = LoadPixelShader   ("DepthOnly_ps"		);
 
 	//***************************************
 	//**** Post processing shaders
@@ -77,11 +77,11 @@ bool LoadShaders()
 	gHeatHazePostProcess		= LoadPixelShader ("HeatHaze_pp");
 	gUnderWaterPostProcess	    = LoadPixelShader ("UnderWater_pp");
 	gBlurPostProcess		    = LoadPixelShader ("Blur_pp");
-	gSecondBlurPostProcess		    = LoadPixelShader ("SecondBlur_pp");
+	gSecondBlurPostProcess	    = LoadPixelShader ("SecondBlur_pp");
 	gBloomPostProcess		    = LoadPixelShader ("Bloom_pp");
 	gRetroPostProcess		    = LoadPixelShader ("Retro_pp");
 	gDepthPostProcess		    = LoadPixelShader ("Depth_pp");
-	gCellPostProcess		    = LoadPixelShader ("CellShading_pp");
+	gCelShadingPostProcess	    = LoadPixelShader ("CelShading_pp");
 	gInvertPostProcess		    = LoadPixelShader ("Invert_pp");
 	gCombinePostProcess		    = LoadPixelShader ("BloomCombine_pp");
 
@@ -93,7 +93,7 @@ bool LoadShaders()
 		gDistortPostProcess         == nullptr || gSpiralPostProcess         == nullptr ||
 		gBlurPostProcess			== nullptr || gBloomPostProcess			 == nullptr ||
 		gRetroPostProcess			== nullptr || gDepthPostProcess			 == nullptr ||
-		gCellPostProcess			== nullptr || gInvertPostProcess		 == nullptr ||
+		gCelShadingPostProcess		== nullptr || gInvertPostProcess		 == nullptr ||
 		gUnderWaterPostProcess		== nullptr || gPortalPixelShader		 == nullptr ||
 		gDepthOnlyPixelShader       == nullptr || gSecondBlurPostProcess     == nullptr ||
 		gCombinePostProcess         == nullptr ||
@@ -109,10 +109,10 @@ bool LoadShaders()
 
 void ReleaseShaders()
 {
-	if (gDepthOnlyPixelShader)        gDepthOnlyPixelShader->Release();
+	if (gDepthOnlyPixelShader)        gDepthOnlyPixelShader		 ->Release();
 	if (gCombinePostProcess)          gCombinePostProcess		 ->Release();
 	if (gInvertPostProcess)           gInvertPostProcess		 ->Release();
-	if (gCellPostProcess)             gCellPostProcess		     ->Release();
+	if (gCelShadingPostProcess)       gCelShadingPostProcess	 ->Release();
 	if (gDepthPostProcess)            gDepthPostProcess		     ->Release();
 	if (gRetroPostProcess)            gRetroPostProcess		     ->Release();
 	if (gBloomPostProcess)            gBloomPostProcess		     ->Release();

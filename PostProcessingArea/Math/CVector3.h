@@ -6,7 +6,7 @@
 #ifndef _CVECTOR3_H_DEFINED_
 #define _CVECTOR3_H_DEFINED_
 
-//#include "CVector4.h"
+#include "CVector2.h"
 #include "MathHelpers.h"
 #include <cmath>
 
@@ -50,6 +50,18 @@ public:
 	//	y = v->y;
 	//	z = v->z;
 	//}
+
+	// Return reference to x & y components as CVector2. Efficient but non-portable
+	CVector2& Vector2()
+	{
+		return *reinterpret_cast<CVector2*>(&x);
+	}
+
+	// Return const reference to x & y components as CVector2. Efficient but non-portable
+	const CVector2& Vector2() const
+	{
+		return *reinterpret_cast<const CVector2*>(&x);
+	}
 
 
 

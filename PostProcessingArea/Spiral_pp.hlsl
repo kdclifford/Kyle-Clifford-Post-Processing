@@ -14,7 +14,7 @@
 Texture2D    SceneTexture : register(t0);
 SamplerState PointSample  : register(s0); // We don't usually want to filter (bilinear, trilinear etc.) the scene texture when
                                           // post-processing so this sampler will use "point sampling" - no filtering
-
+SamplerState MirrorSample : register(s1);
 
 //--------------------------------------------------------------------------------------
 // Shader code
@@ -39,7 +39,7 @@ float4 main(PostProcessingInput input) : SV_Target
 	float2 rotatedOffsetUV = mul(centreOffsetUV, rot2D);
 
 	// Sample texture at new position (centre UV + rotated UV offset)
-    float3 outputColour = SceneTexture.Sample( PointSample, centreUV + rotatedOffsetUV ).rgb;
+    float3 outputColour = SceneTexture.Sample(MirrorSample, centreUV + rotatedOffsetUV).rgb;
 
 	// Calculate alpha to display the effect in a softened circle, could use a texture rather than calculations for the same task.
 	// Uses the second set of area texture coordinates, which range from (0,0) to (1,1) over the area being processed
