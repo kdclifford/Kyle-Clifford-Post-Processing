@@ -53,8 +53,9 @@ float4 main(PostProcessingInput input) : SV_Target
 	// Adjust alpha on a sine wave - better to have it nearer to 1.0 (but don't allow it to exceed 1.0)
     ppAlpha *= saturate(SinX * SinY * 0.33f + 0.55f);
 
-    float newColour = /*(ppColour.r + ppColour.g) / 2*/ 1;
-    ppColour.b = newColour;
+    float3 newColour = gWaterColour;
+    ppColour += newColour;
+   // ppColour.b += 0.5;
     
     return float4(ppColour, ppAlpha);
 

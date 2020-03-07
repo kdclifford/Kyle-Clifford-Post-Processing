@@ -190,6 +190,11 @@ cbuffer PostProcessingConstants : register(b1)
     bool gHueOnOff;
     float3 paddingM;
     
+    float gScanLineTimer;
+    float3 paddingN;
+    
+    float3 gWaterColour;
+    float paddingO;    
 }
 
 //**************************

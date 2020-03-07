@@ -184,5 +184,5 @@ float4 main(PostProcessingInput input) : SV_Target
     float centreLengthSq = dot(centreVector, centreVector);
     float alpha = 1.0f - saturate((centreLengthSq - 0.25f + softEdge) / softEdge);
 	// Got the RGB from the scene texture, set alpha to 1 for final output
-    return float4(colour, 1.0f);
+    return float4(saturate(colour), 1.0f);
 }

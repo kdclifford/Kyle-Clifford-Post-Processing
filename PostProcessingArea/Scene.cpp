@@ -1747,6 +1747,11 @@ void RenderScene()
 
 
 	ImGui::SliderInt("Blur", &gPostProcessingConstants.kernalSize, 3, KernelMaxSize);
+
+	ImGui::SliderFloat("Red", &gPostProcessingConstants.waterColour.x, 0, 1);
+	ImGui::SliderFloat("Green", &gPostProcessingConstants.waterColour.y, 0, 1);
+	ImGui::SliderFloat("Blue", &gPostProcessingConstants.waterColour.z, 0, 1);
+
 	//ImGui::SliderFloat("Colour Green", &gPostProcessingConstants.tintColour.y, 0, 1);
 	//ImGui::SliderFloat("Colour Blue", &gPostProcessingConstants.tintColour.z, 0, 1);
 
@@ -1878,6 +1883,13 @@ void RenderScene()
 			TVList.push_back(PostProcess::Combine);
 		}
 
+		if (ImGui::Button("Invert", ImVec2(100, 20)))
+		{
+			TVList.push_back(PostProcess::Invert);
+		
+		}
+
+
 		if (ImGui::Button("Clear TV Screen", ImVec2(100, 20)))
 		{
 			TVList.push_back(PostProcess::Copy);
@@ -1950,6 +1962,11 @@ void RenderScene()
 					currentSelectedPoly->process.push_back(PostProcess::UnderWater);
 				}
 
+				if (ImGui::Button("Invert", ImVec2(100, 20)))
+				{
+					currentSelectedPoly->process.push_back(PostProcess::Invert);
+				}
+
 				if (ImGui::Button("Light Beam", ImVec2(100, 20)))
 				{
 					currentSelectedPoly->process.push_back(PostProcess::Bloom);
@@ -1959,7 +1976,7 @@ void RenderScene()
 					currentSelectedPoly->process.push_back(PostProcess::Combine);
 				}
 
-				if (ImGui::Button("Clear TV Screen", ImVec2(100, 20)))
+				if (ImGui::Button("Clear Window", ImVec2(100, 20)))
 				{
 					currentSelectedPoly->process.push_back(PostProcess::Copy);
 					currentSelectedPoly->process.clear();
@@ -2126,6 +2143,10 @@ void UpdateScene(float frameTime)
 	const float burnSpeed = 0.2f;
 	gPostProcessingConstants.burnHeight = fmod(gPostProcessingConstants.burnHeight + burnSpeed * frameTime, 1.0f);
 
+	const float scanSpeed = 0.6f;
+	gPostProcessingConstants.scanLineTimer = gPostProcessingConstants.scanLineTimer - scanSpeed * frameTime;
+
+
 	// Set the level of distortion
 	gPostProcessingConstants.distortLevel = 0.03f;
 
@@ -2146,13 +2167,13 @@ void UpdateScene(float frameTime)
 		const float HueSpeed = 0.1f;
 		gPostProcessingConstants.hueTimer = ((1.0f - cos(HueTimer)) * 4.0f);
 		HueTimer += HueSpeed * frameTime;
-
+	}
 		// Set and increase the amount of Underwater - use a tweaked cos wave to animate
 		static float UnderWaterTimer = 0.0f;
 		const float UnderWaterSpeed = 0.5f;
 		gPostProcessingConstants.underWaterLevel = ((1.0f - cos(UnderWaterTimer)) * 4.0f);
 		UnderWaterTimer += UnderWaterSpeed * frameTime;
-	}
+	
 
 	
 

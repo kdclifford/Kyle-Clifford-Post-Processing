@@ -180,6 +180,11 @@ struct PostProcessingConstants
 	bool hueOnOff;
 	CVector3 paddingM;
 
+	float scanLineTimer;
+	CVector3 paddingN;
+
+	CVector3 waterColour;
+	float paddingO;
 };
 extern PostProcessingConstants gPostProcessingConstants;      // This variable holds the CPU-side constant buffer described above
 extern ID3D11Buffer*           gPostProcessingConstantBuffer; // This variable controls the GPU-side constant buffer related to the above structure
