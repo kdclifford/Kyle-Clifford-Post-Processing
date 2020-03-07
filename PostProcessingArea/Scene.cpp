@@ -1288,7 +1288,7 @@ void AreaPostProcess(PostProcess postProcess, CVector3 worldPoint, CVector2 area
 
 	gD3DContext->Draw(4, 0);
 
-	gD3DContext->OMSetRenderTargets(1, &gBackBufferRenderTarget, gDepthStencil);
+	gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[0], gDepthStencil);
 
 	gD3DContext->Draw(4, 0);
 }
@@ -1314,11 +1314,11 @@ void PolygonPostProcess(PostProcess postProcess, const std::array<CVector3, 4> &
 		else
 		{
 			// First perform a full-screen copy of the scene to back-buffer
-			FullScreenPostProcess(PostProcess::Copy, 0, 1, 0);
+			FullScreenPostProcess(PostProcess::Copy, 0, 0, 1);
 
-			gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[1], gDepthStencil);
+			gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[0], gDepthStencil);
 
-			gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[0]);
+			gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[1]);
 
 		}
 	
@@ -1334,7 +1334,7 @@ void PolygonPostProcess(PostProcess postProcess, const std::array<CVector3, 4> &
 	SelectPostProcessShaderAndTextures(postProcess, 0);
 
 
-	gD3DContext->OMSetBlendState(gAlphaBlendingState, nullptr, 0xffffff);
+	gD3DContext->OMSetBlendState(gNoBlendingState, nullptr, 0xffffff);
 	// Loop through the given points, transform each to 2D (this is what the vertex shader normally does in most labs)
 	for (unsigned int i = 0; i < points.size(); ++i)
 	{
@@ -1344,6 +1344,11 @@ void PolygonPostProcess(PostProcess postProcess, const std::array<CVector3, 4> &
 
 		gPostProcessingConstants.polygon2DPoints[i] = viewportPosition;
 	}
+
+	// Set 2D area for full-screen post-processing (coordinates in 0->1 range)
+	gPostProcessingConstants.area2DTopLeft = { 0, 0 }; // Top-left of entire screen
+	gPostProcessingConstants.area2DSize = { 1, 1 }; // Full size of screen
+	gPostProcessingConstants.area2DDepth = 0;        // Depth buffer value for full screen is as close as possible
 
 	// Pass over the polygon points to the shaders (also sends the per-process settings prepared in UpdateScene function below)
 	UpdateConstantBuffer(gPostProcessingConstantBuffer, gPostProcessingConstants);
@@ -1358,7 +1363,8 @@ void PolygonPostProcess(PostProcess postProcess, const std::array<CVector3, 4> &
 
 	gD3DContext->Draw(4, 0);
 
-	gD3DContext->OMSetRenderTargets(1, &gBackBufferRenderTarget, gDepthStencil);
+
+	gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[0], gDepthStencil);
 
 	gD3DContext->Draw(4, 0);
 
@@ -1568,35 +1574,7 @@ void RenderScene()
 
 
 
-	// Run any post-processing steps
-	if (!currentList.empty())
-	{
-		for (int i = 0; i < currentList.size(); i++)
-		{
-			if (gFullPostProcessMode == true)
-			{
-				if (currentList[i] == PostProcess::Bloom)
-				{
-					if (i % 2 == 0)
-					{
-						ImagePostProcessing(PostProcess::Copy, 0, 4, 0);
-					}
-					else
-					{
-						ImagePostProcessing(PostProcess::Copy, 1, 4, 0);
-					}
-
-
-
-				}
-
-
-				FullScreenPostProcess(currentList[i], i, 0, 1);
-			}
-			//ID3D11ShaderResourceView* nullSRV = nullptr;
-			gD3DContext->PSSetShaderResources(0, 1, &nullSRV);
-		}
-	}
+	
 	
 
 
@@ -1643,6 +1621,36 @@ void RenderScene()
 					PolygonPostProcess(postProcessPoly[i]->process[j], postProcessPoly[i]->points, postProcessPoly[i]->polyMatrix, i);
 					gD3DContext->PSSetShaderResources(0, 1, &nullSRV);
 				}
+			}
+		}
+
+		// Run any post-processing steps
+		if (!currentList.empty())
+		{
+			for (int i = 0; i < currentList.size(); i++)
+			{
+				if (gFullPostProcessMode == true)
+				{
+					if (currentList[i] == PostProcess::Bloom)
+					{
+						if (i % 2 == 0)
+						{
+							FullScreenPostProcess(PostProcess::Copy, 0, 0, 4);
+						}
+						else
+						{
+							FullScreenPostProcess(PostProcess::Copy, 0, 1, 4);
+						}
+
+
+
+					}
+
+
+					FullScreenPostProcess(currentList[i], i, 0, 1);
+				}
+				//ID3D11ShaderResourceView* nullSRV = nullptr;
+				gD3DContext->PSSetShaderResources(0, 1, &nullSRV);
 			}
 		}
 
@@ -1783,6 +1791,8 @@ void RenderScene()
 			if (ImGui::Button("Bloom", ImVec2(100, 20)))
 			{
 				gCurrentPostProcess = PostProcess::Bloom, currentList.push_back(gCurrentPostProcess),
+					gCurrentPostProcess = PostProcess::Blur, currentList.push_back(gCurrentPostProcess),
+					gCurrentPostProcess = PostProcess::SecondBlur, currentList.push_back(gCurrentPostProcess),
 					gCurrentPostProcess = PostProcess::Blur, currentList.push_back(gCurrentPostProcess),
 					gCurrentPostProcess = PostProcess::SecondBlur, currentList.push_back(gCurrentPostProcess),
 					gCurrentPostProcess = PostProcess::Combine, currentList.push_back(gCurrentPostProcess);
@@ -2045,7 +2055,7 @@ void UpdateScene(float frameTime)
 	if (KeyHit(Key_F2))  gAreaPostProcessMode = !gAreaPostProcessMode;
 	if (KeyHit(Key_F3))  gPolyPostProcessMode = !gPolyPostProcessMode;
 
-	if (KeyHit(Key_1))  gCurrentPostProcess = PostProcess::Tint, currentList.push_back(gCurrentPostProcess);
+	if (KeyHit(Key_1)) 	gCurrentPostProcess = PostProcess::Tint, currentList.push_back(gCurrentPostProcess);
 	if (KeyHit(Key_2))  gCurrentPostProcess = PostProcess::GreyNoise, currentList.push_back(gCurrentPostProcess);
 	if (KeyHit(Key_3))  gCurrentPostProcess = PostProcess::Burn, currentList.push_back(gCurrentPostProcess);
 	if (KeyHit(Key_4))  gCurrentPostProcess = PostProcess::Distort, currentList.push_back(gCurrentPostProcess);
@@ -2128,8 +2138,6 @@ void UpdateScene(float frameTime)
 	// Update heat haze timer
 	gPostProcessingConstants.heatHazeTimer += frameTime;
 
-	// Set Bloom Level
-	gPostProcessingConstants.bloomLevel = 10;
 
 	// Set Blur Level
 	if (gPostProcessingConstants.hueOnOff)
