@@ -41,6 +41,8 @@ extern ID3D11PixelShader*  gBloomPostProcess;
 extern ID3D11PixelShader*  gRetroPostProcess;
 extern ID3D11PixelShader*  gDepthPostProcess;
 extern ID3D11PixelShader*  gCelShadingPostProcess;
+extern ID3D11PixelShader*  gTVPostProcess;
+extern ID3D11PixelShader*  gLightBeamsPostProcess;
 extern ID3D11PixelShader*  gInvertPostProcess;
 extern ID3D11PixelShader*  gCombinePostProcess;
 

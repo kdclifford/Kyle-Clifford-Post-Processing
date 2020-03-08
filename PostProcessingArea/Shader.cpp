@@ -43,6 +43,8 @@ ID3D11PixelShader*  gRetroPostProcess	   = nullptr;
 ID3D11PixelShader*  gDepthPostProcess	   = nullptr;
 ID3D11PixelShader*  gCelShadingPostProcess = nullptr;
 ID3D11PixelShader*  gInvertPostProcess	   = nullptr;
+ID3D11PixelShader*  gTVPostProcess	       = nullptr;
+ID3D11PixelShader*  gLightBeamsPostProcess = nullptr;
 ID3D11PixelShader*  gCombinePostProcess    = nullptr;
 
 
@@ -83,6 +85,8 @@ bool LoadShaders()
 	gDepthPostProcess		    = LoadPixelShader ("Depth_pp");
 	gCelShadingPostProcess	    = LoadPixelShader ("CelShading_pp");
 	gInvertPostProcess		    = LoadPixelShader ("Invert_pp");
+	gLightBeamsPostProcess		= LoadPixelShader("LightBeams_pp");
+	gTVPostProcess		        = LoadPixelShader ("Tv_pp");
 	gCombinePostProcess		    = LoadPixelShader ("BloomCombine_pp");
 
 	if (gBasicTransformVertexShader == nullptr || gPixelLightingVertexShader == nullptr ||
@@ -96,7 +100,8 @@ bool LoadShaders()
 		gCelShadingPostProcess		== nullptr || gInvertPostProcess		 == nullptr ||
 		gUnderWaterPostProcess		== nullptr || gPortalPixelShader		 == nullptr ||
 		gDepthOnlyPixelShader       == nullptr || gSecondBlurPostProcess     == nullptr ||
-		gCombinePostProcess         == nullptr ||
+		gCombinePostProcess         == nullptr || gLightBeamsPostProcess     == nullptr ||
+		gTVPostProcess		        == nullptr ||
 		g2DPolygonVertexShader      == nullptr)
 	{
 		gLastError = "Error loading shaders";
@@ -109,6 +114,8 @@ bool LoadShaders()
 
 void ReleaseShaders()
 {
+	if (gTVPostProcess)               gTVPostProcess			 ->Release();
+	if (gLightBeamsPostProcess)       gLightBeamsPostProcess     ->Release();
 	if (gDepthOnlyPixelShader)        gDepthOnlyPixelShader		 ->Release();
 	if (gCombinePostProcess)          gCombinePostProcess		 ->Release();
 	if (gInvertPostProcess)           gInvertPostProcess		 ->Release();

@@ -56,6 +56,8 @@ enum class PostProcess
 	UnderWater,
 	SecondBlur,
 	Combine,
+	LightBeams,
+	TV,
 
 
 
@@ -74,7 +76,7 @@ const int KernelMaxSize = 64;
 float GKernel[KernelMaxSize];
 
 auto gCurrentPostProcess = PostProcess::None;
-auto gTvPostProcess = PostProcess(rand() % int(PostProcess::AmountOfPosts) + int(PostProcess::None));
+//auto gTvPostProcess = PostProcess(rand() % int(PostProcess::AmountOfPosts) + int(PostProcess::None));
 std::vector<PostProcess> currentList;
 std::vector<PostProcess> TVList;
 //std::vector<PostProcess> polyList{ PostProcess::Tint, PostProcess::Spiral, PostProcess::Retro, PostProcess::Tint, PostProcess::UnderWater, };
@@ -214,7 +216,7 @@ ID3D11ShaderResourceView* gLightDiffuseMapSRV = nullptr;
 //****************************
 // Post processing textures
 
-const int amountOfTextures = 6;
+const int amountOfTextures = 7;
 
 // This texture will have the scene renderered on it. Then the texture is then used for post-processing
 ID3D11Texture2D* gSceneTexture[amountOfTextures]; // This object represents the memory used by the texture on the GPU
@@ -223,6 +225,12 @@ ID3D11ShaderResourceView* gSceneTextureSRV[amountOfTextures]; // This object is 
 
 ID3D11Texture2D* gPortalDepthStencil = nullptr; // This object represents the memory used by the texture on the GPU
 ID3D11DepthStencilView* gPortalDepthStencilView = nullptr; // This object is used when we want to use the texture above as the depth buffer
+
+
+ID3D11Texture2D* gSceneDepthTexture = nullptr; // This object represents the memory used by the texture on the GPU
+ID3D11DepthStencilView* gSceneDepthStencil = nullptr; // This object is used when we want to render to the texture above **as a depth buffer**
+ID3D11ShaderResourceView* gSceneDepthSRV = nullptr; // This object is used to give shaders access to the texture above (SRV = shader resource view)
+
 
 
 // Additional textures used for specific post-processes
@@ -490,6 +498,53 @@ bool InitGeometry()
 
 	//*****************************//
 
+	//**** Create Shadow Map texture ****//
+
+	// We also need a depth buffer to go with our portal
+	D3D11_TEXTURE2D_DESC textureDesc = {};
+	textureDesc.Width = gViewportWidth; // Size of the shadow map determines quality / resolution of shadows
+	textureDesc.Height = gViewportHeight;
+	textureDesc.MipLevels = 1; // 1 level, means just the main texture, no additional mip-maps. Usually don't use mip-maps when rendering to textures (or we would have to render every level)
+	textureDesc.ArraySize = 1;
+	textureDesc.Format = DXGI_FORMAT_R32_TYPELESS; // The shadow map contains a single 32-bit value [tech gotcha: have to say typeless because depth buffer and shaders see things slightly differently]
+	textureDesc.SampleDesc.Count = 1;
+	textureDesc.SampleDesc.Quality = 0;
+	textureDesc.Usage = D3D11_USAGE_DEFAULT;
+	textureDesc.BindFlags = D3D10_BIND_DEPTH_STENCIL | D3D10_BIND_SHADER_RESOURCE; // Indicate we will use texture as a depth buffer and also pass it to shaders
+	textureDesc.CPUAccessFlags = 0;
+	textureDesc.MiscFlags = 0;
+	if (FAILED(gD3DDevice->CreateTexture2D(&textureDesc, NULL, &gSceneDepthTexture)))
+	{
+		gLastError = "Error creating shadow map texture";
+		return false;
+	}
+
+	// Create the depth stencil view, i.e. indicate that the texture just created is to be used as a depth buffer
+	D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
+	dsvDesc.Format = DXGI_FORMAT_D32_FLOAT; // See "tech gotcha" above. The depth buffer sees each pixel as a "depth" float
+	dsvDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+	dsvDesc.Texture2D.MipSlice = 0;
+	dsvDesc.Flags = 0;
+	if (FAILED(gD3DDevice->CreateDepthStencilView(gSceneDepthTexture, &dsvDesc, &gSceneDepthStencil)))
+	{
+		gLastError = "Error creating shadow map depth stencil view";
+		return false;
+	}
+
+
+	// We also need to send this texture (resource) to the shaders. To do that we must create a shader-resource "view"
+	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+	srvDesc.Format = DXGI_FORMAT_R32_FLOAT; // See "tech gotcha" above. The shaders see textures as colours, so shadow map pixels are not seen as depths
+										   // but rather as "red" floats (one float taken from RGB). Although the shader code will use the value as a depth
+	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	srvDesc.Texture2D.MostDetailedMip = 0;
+	srvDesc.Texture2D.MipLevels = 1;
+	if (FAILED(gD3DDevice->CreateShaderResourceView(gSceneDepthTexture, &srvDesc, &gSceneDepthSRV)))
+	{
+		gLastError = "Error creating shadow map shader resource view";
+		return false;
+	}
+
 	return true;
 }
 
@@ -699,6 +754,11 @@ void ReleaseResources()
 		if (gSceneTexture[i])                 gSceneTexture[i]->Release();
 	}
 
+	if (gSceneDepthStencil)  gSceneDepthStencil->Release();
+	if (gSceneDepthSRV)           gSceneDepthSRV->Release();
+	if (gSceneDepthTexture)       gSceneDepthTexture->Release();
+
+
 	if (gPortalDepthStencilView)  gPortalDepthStencilView->Release();
 	if (gPortalDepthStencil)      gPortalDepthStencil->Release();
 
@@ -762,39 +822,40 @@ void ReleaseResources()
 }
 
 // Render the scene from the given light's point of view. Only renders depth buffer
-//void RenderDepthBufferFromLight()
-//{
-//	// Get camera-like matrices from the spotlight, seet in the constant buffer and send over to GPU
-//	gPerFrameConstants.viewMatrix = CalculateLightViewMatrix(0);
-//	gPerFrameConstants.projectionMatrix = CalculateLightProjectionMatrix(0);
-//	gPerFrameConstants.viewProjectionMatrix = gPerFrameConstants.viewMatrix * gPerFrameConstants.projectionMatrix;
-//	UpdateConstantBuffer(gPerFrameConstantBuffer, gPerFrameConstants);
-//
-//	// Indicate that the constant buffer we just updated is for use in the vertex shader (VS) and pixel shader (PS)
-//	gD3DContext->VSSetConstantBuffers(0, 1, &gPerFrameConstantBuffer); // First parameter must match constant buffer number in the shader 
-//	gD3DContext->PSSetConstantBuffers(0, 1, &gPerFrameConstantBuffer);
-//
-//
-//	//// Only render models that cast shadows ////
-//
-//	// Use special depth-only rendering shaders
-//	gD3DContext->VSSetShader(gBasicTransformVertexShader, nullptr, 0);
-//	gD3DContext->PSSetShader(gDepthOnlyPixelShader, nullptr, 0);
-//
-//	// States - no blending, normal depth buffer and culling
-//	gD3DContext->OMSetBlendState(gNoBlendingState, nullptr, 0xffffff);
-//	gD3DContext->OMSetDepthStencilState(gUseDepthBufferState, 0);
-//	gD3DContext->RSSetState(gCullBackState);
-//
-//	// Render models - no state changes required between each object in this situation (no textures used in this step)
-//	gGround->Render();
-//	gTv->Render();
-//	gCrate->Render();
-//	gTv->Render();
-//	gWall->Render();
-//	gWall2->Render();
-//	gStars->Render();
-//}
+void RenderDepthBufferFromLight()
+{
+	// Get camera-like matrices from the spotlight, seet in the constant buffer and send over to GPU
+	gPerFrameConstants.cameraMatrix = gCamera->WorldMatrix();
+	gPerFrameConstants.viewMatrix = gCamera->ViewMatrix();
+	gPerFrameConstants.projectionMatrix = gCamera->ProjectionMatrix();
+	gPerFrameConstants.viewProjectionMatrix = gCamera->ViewProjectionMatrix();
+	UpdateConstantBuffer(gPerFrameConstantBuffer, gPerFrameConstants);
+
+	// Indicate that the constant buffer we just updated is for use in the vertex shader (VS) and pixel shader (PS)
+	gD3DContext->VSSetConstantBuffers(0, 1, &gPerFrameConstantBuffer); // First parameter must match constant buffer number in the shader 
+	gD3DContext->PSSetConstantBuffers(0, 1, &gPerFrameConstantBuffer);
+
+
+	//// Only render models that cast shadows ////
+
+	// Use special depth-only rendering shaders
+	gD3DContext->VSSetShader(gBasicTransformVertexShader, nullptr, 0);
+	gD3DContext->PSSetShader(gDepthOnlyPixelShader, nullptr, 0);
+
+	// States - no blending, normal depth buffer and culling
+	gD3DContext->OMSetBlendState(gNoBlendingState, nullptr, 0xffffff);
+	gD3DContext->OMSetDepthStencilState(gUseDepthBufferState, 0);
+	gD3DContext->RSSetState(gCullBackState);
+
+	// Render models - no state changes required between each object in this situation (no textures used in this step)
+	gGround->Render();
+	gTv->Render();
+	gCrate->Render();
+	gTv->Render();
+	gWall->Render();
+	gWall2->Render();
+	gStars->Render();
+}
 
 
 
@@ -912,6 +973,43 @@ void RenderSceneFromCamera(Camera* camera)
 		gPerModelConstants.objectColour = gLights[i].colour; // Set any per-model constants apart from the world matrix just before calling render (light colour here)
 		gLights[i].model->Render();
 	}
+
+	//*************************************************************************
+// Particle rendering/update
+
+//////////////////////////
+// Rendering
+
+// Unbind the depth buffer (the NULL) as we're now going to use it as a texture instead of writing to it normally
+// Then allow access to the depth buffer as a texture in the pixel shader
+	gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[6], nullptr);
+	gD3DContext->PSSetShaderResources(1, 1, &gDepthShaderView);
+	gD3DContext->PSSetSamplers(1, 1, &gPointSampler);
+
+	// Set shaders for particle rendering - the vertex shader just passes the data to the 
+	// geometry shader, which generates a camera-facing 2D quad from the particle world position 
+	// The pixel shader is very simple and just draws a tinted texture for each particle
+	gD3DContext->VSSetShader(gPixelLightingVertexShader, nullptr, 0);
+	gD3DContext->PSSetShader(gDepthOnlyPixelShader, nullptr, 0);
+	gD3DContext->GSSetShader(nullptr, nullptr, 0);  // Switch off geometry shader when not using it (pass nullptr for first parameter)
+
+	// Select the texture and sampler to use in the pixel shader
+	//gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[6]);
+
+	// States - alpha blending and no culling
+	gD3DContext->OMSetBlendState(gAlphaBlendingState, nullptr, 0xffffff);
+	gD3DContext->OMSetDepthStencilState(gDepthReadOnlyState, 0);
+	gD3DContext->RSSetState(gCullNoneState);
+
+	// Indicate that this is a point list and render it
+	gD3DContext->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_POINTLIST);
+	gD3DContext->Draw(4, 0);
+
+	// Detach depth buffer from shader and set it back to its normal usage
+	gD3DContext->PSSetShaderResources(1, 1, &nullSRV);
+	gD3DContext->OMSetRenderTargets(1, &gBackBufferRenderTarget, gDepthStencil);
+
+
 }
 
 
@@ -1002,7 +1100,7 @@ void SelectPostProcessShaderAndTextures(PostProcess postProcess, int index)
 
 	else if (postProcess == PostProcess::Depth)
 	{
-
+		gD3DContext->PSSetShaderResources(1, 1, &gSceneDepthSRV);
 		gD3DContext->PSSetSamplers(1, 1, &gPointSampler);
 		gD3DContext->PSSetShader(gDepthPostProcess, nullptr, 0);
 		/*gD3DContext->PSSetShaderResources(1, 1, &gMovieSRV);
@@ -1024,6 +1122,17 @@ void SelectPostProcessShaderAndTextures(PostProcess postProcess, int index)
 		gD3DContext->PSSetShaderResources(1, 1, &gSceneTextureSRV[4]);
 		gD3DContext->PSSetShader(gCombinePostProcess, nullptr, 0);
 	}
+
+	else if (postProcess == PostProcess::TV)
+	{
+	gD3DContext->PSSetShader(gTVPostProcess, nullptr, 0);
+	}
+
+	else if (postProcess == PostProcess::LightBeams)
+	{
+	gD3DContext->PSSetShader(gLightBeamsPostProcess, nullptr, 0);
+	}
+
 
 }
 
@@ -1517,20 +1626,24 @@ void RenderScene()
 	// If using post-processing then render to the scene texture, otherwise to the usual back buffer
 	// Also clear the render target to a fixed colour and the depth buffer to the far distance
 
+		// Setup the viewport to the size of the shadow map texture
+	vp.Width = static_cast<FLOAT>(gViewportWidth);
+	vp.Height = static_cast<FLOAT>(gViewportHeight);
+	vp.MinDepth = 0.0f;
+	vp.MaxDepth = 1.0f;
+	vp.TopLeftX = 0;
+	vp.TopLeftY = 0;
+	gD3DContext->RSSetViewports(1, &vp);
+
+	// Select the shadow map texture as the current depth buffer. We will not be rendering any pixel colours
+	// Also clear the the shadow map depth buffer to the far distance
+	gD3DContext->OMSetRenderTargets(0, nullptr, gSceneDepthStencil);
+	gD3DContext->ClearDepthStencilView(gSceneDepthStencil, D3D11_CLEAR_DEPTH, 1.0f, 0);
 
 
-	//if (!currentList.empty())
-	//{
-	//	for (int i = 0; i < currentList.size(); i++)
-	//	{
-	//		if (gCurrentPostProcessMode == PostProcessMode::Fullscreen)
-	//		{
-	//		 ImagePostProcessing(currentList[i], 5, 4, i);
-	//		}
-	//		//ID3D11ShaderResourceView* nullSRV = nullptr;
-	//		gD3DContext->PSSetShaderResources(0, 1, &nullSRV);
-	//	}
-	//}
+
+
+
 
 	if (!currentList.empty())
 	{
@@ -1560,13 +1673,14 @@ void RenderScene()
 	vp.TopLeftY = 0;
 	gD3DContext->RSSetViewports(1, &vp);
 
+
 	// Render the scene from the main camera
-	//ColourRGBA white = { 1,1,1 };
-	//gD3DContext->ClearRenderTargetView(gBackBufferRenderTarget, &white.r);
-	//RenderDepthBufferFromLight();
-	RenderSceneFromCamera(gCamera);
 
+	//RenderSceneFromCamera(gCamera);
 
+	ColourRGBA white = { 1,1,1 };
+	gD3DContext->ClearRenderTargetView(gSceneRenderTarget[0], &white.r);
+	RenderDepthBufferFromLight();
 
 
 	////--------------- Scene completion ---------------////
@@ -1811,7 +1925,7 @@ void RenderScene()
 			if (ImGui::Button("Light Beam", ImVec2(100, 20)))
 			{
 				gCurrentPostProcess = PostProcess::Bloom, currentList.push_back(gCurrentPostProcess);
-				gCurrentPostProcess = PostProcess::Depth, currentList.push_back(gCurrentPostProcess);
+				gCurrentPostProcess = PostProcess::LightBeams, currentList.push_back(gCurrentPostProcess);
 				gCurrentPostProcess = PostProcess::Blur, currentList.push_back(gCurrentPostProcess);
 				gCurrentPostProcess = PostProcess::SecondBlur, currentList.push_back(gCurrentPostProcess);
 				gCurrentPostProcess = PostProcess::Combine, currentList.push_back(gCurrentPostProcess);
@@ -1830,6 +1944,12 @@ void RenderScene()
 			if (ImGui::Button("HeatHaze", ImVec2(100, 20)))
 			{
 				gCurrentPostProcess = PostProcess::HeatHaze, currentList.push_back(gCurrentPostProcess);
+			}
+
+
+			if (ImGui::Button("TV Vision", ImVec2(100, 20)))
+			{
+				gCurrentPostProcess = PostProcess::TV, currentList.push_back(gCurrentPostProcess);
 			}
 
 			if (ImGui::Button("Clear", ImVec2(100, 20)))
@@ -1877,7 +1997,7 @@ void RenderScene()
 		if (ImGui::Button("Light Beam", ImVec2(100, 20)))
 		{
 			TVList.push_back(PostProcess::Bloom);
-			TVList.push_back(PostProcess::Depth);
+			TVList.push_back(PostProcess::LightBeams);
 			TVList.push_back(PostProcess::Blur);
 			TVList.push_back(PostProcess::SecondBlur);
 			TVList.push_back(PostProcess::Combine);
@@ -1887,6 +2007,12 @@ void RenderScene()
 		{
 			TVList.push_back(PostProcess::Invert);
 		
+		}
+
+		if (ImGui::Button("TV Vision", ImVec2(100, 20)))
+		{
+			TVList.push_back(PostProcess::TV);
+
 		}
 
 
@@ -1970,7 +2096,7 @@ void RenderScene()
 				if (ImGui::Button("Light Beam", ImVec2(100, 20)))
 				{
 					currentSelectedPoly->process.push_back(PostProcess::Bloom);
-					currentSelectedPoly->process.push_back(PostProcess::Depth);
+					currentSelectedPoly->process.push_back(PostProcess::LightBeams);
 					currentSelectedPoly->process.push_back(PostProcess::Blur);
 					currentSelectedPoly->process.push_back(PostProcess::SecondBlur);
 					currentSelectedPoly->process.push_back(PostProcess::Combine);
@@ -2007,6 +2133,9 @@ void RenderScene()
 	gD3DContext->OMSetRenderTargets(1, &gBackBufferRenderTarget, nullptr);
 	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
+	/*ColourRGBA white = { 1,1,1 };
+	gD3DContext->ClearRenderTargetView(gBackBufferRenderTarget, &white.r);
+	RenderDepthBufferFromLight();*/
 
 	// When drawing to the off-screen back buffer is complete, we "present" the image to the front buffer (the screen)
 	// Set first parameter to 1 to lock to vsync

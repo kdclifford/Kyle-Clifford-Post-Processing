@@ -6,6 +6,10 @@
 
 #include "Common.hlsli" // Shaders can also use include files - note the extension
 
+Texture2D SceneTexture : register(t0);
+Texture2D DepthTexture : register(t1);
+SamplerState PointSamle : register(s0);
+
 
 //--------------------------------------------------------------------------------------
 // Shader code
@@ -15,10 +19,20 @@
 // since we are only writing to the depth buffer. However, one of the exercises displays the content on the screen.
 float4 main(SimplePixelShaderInput input) : SV_Target
 {
+    
+    
+    
 	// Output the value that would go in the depth buffer to the pixel colour (greyscale)
     // The pow just rescales the values so they are easier to visualise. Although depth values range from 0 to 1 most
     // values are close to 1, which might give the (mistaken) impression that the depth buffer is empty
-    return pow(input.projectedPosition.z, 20);
+    //return pow(input.projectedPosition.z, 20);
+    
+    //float4 colour = (0, 0, 0, 1);
+    
+    //colour.r = DepthTexture.Sample(PointSamle, input.uv);
+    //return colour;
+    return pow(input.projectedPosition.z, 200);
+    
 }
 
 
