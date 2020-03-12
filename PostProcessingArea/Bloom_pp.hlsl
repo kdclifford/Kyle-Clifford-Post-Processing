@@ -36,7 +36,7 @@ float4 main(PostProcessingInput input) : SV_Target
     
     float pixelAverage = (orignal.r + orignal.g + orignal.b) / 3;
     
-    if (pixelAverage < 0.6f)
+    if (pixelAverage < 0.6333333f)
     {
         orignal = float3(0, 0, 0);
         //discard;

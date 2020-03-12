@@ -119,26 +119,11 @@ CVector3 Camera::PixelFromWorldPt(CVector3 worldPoint, unsigned int viewportWidt
 
 CVector3 Camera::WorldPtFromPixel(CVector2 pixelPt, unsigned int ViewportWidth, unsigned int ViewportHeight)
 {
-	//CVector4 Q;
-	//Q.x = pixelPt.x / (ViewportWidth * 0.5f) - 1.0f;
-	//Q.y = 1.0f - pixelPt.y / (ViewportHeight * 0.5f);
-
-	////Calculate a result world - space point that is exactly on the clip plane
-	//Q.z = 0.0f;
-	//Q.w = m_NearClip;
-
-	////Undo the perspective divide
-	//Q.x *= Q.w;
-	//Q.y *= Q.w;
-	//Q.z *= Q.w;
-
-	//Q = Q * InverseAffine(m_MatViewProj);
-
-	//CVector4 worldPt = Q;
-
-	////++++MISSING Complete this function by refering to lecture notes
-	//return CVector3(worldPt); // Placeholder line - should return correct world point
 	CVector4 cameraPt;
+	
+	UpdateMatrices();
+
+
 	cameraPt.x = pixelPt.x / (ViewportWidth * 0.5f) - 1.0f;
 	cameraPt.y = 1.0f - pixelPt.y / (ViewportHeight * 0.5f);
 	cameraPt.z = 0.0f;

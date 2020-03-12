@@ -568,8 +568,10 @@ void createPolys()
 
 	firstPoly->polyMatrix.SetPosition(CVector3(gWall->Position().x, gWall->Position().y + 25, gWall->Position().z));
 	firstPoly->polyMatrix.SetRotation(CVector3(gWall->Rotation().x, gWall->Rotation().y, gWall->Rotation().z), firstPoly->polyMatrix);
-	firstPoly->process.push_back(PostProcess::Burn);
-	firstPoly->process.push_back(PostProcess::Invert);
+	firstPoly->process.push_back(PostProcess::Bloom);
+	firstPoly->process.push_back(PostProcess::Blur);
+	firstPoly->process.push_back(PostProcess::SecondBlur);
+	firstPoly->process.push_back(PostProcess::Combine);
 	firstPoly->name = "Square Window";
 
 	postProcessPoly.push_back(firstPoly);
@@ -725,7 +727,7 @@ bool InitScene()
 	allModels.push_back(gLights[1].model);
 
 	gCamera = new Camera();
-	gCamera->SetPosition({ 25, 18, -45 });
+	gCamera->SetPosition({ 25, 18, -70 });
 	gCamera->SetRotation({ ToRadians(10.0f), ToRadians(7.0f), 0.0f });
 
 	//**** Portal camera is the view shown in the portal object's texture ****//
@@ -1100,11 +1102,9 @@ void SelectPostProcessShaderAndTextures(PostProcess postProcess, int index)
 
 	else if (postProcess == PostProcess::Depth)
 	{
-		gD3DContext->PSSetShaderResources(1, 1, &gSceneDepthSRV);
-		gD3DContext->PSSetSamplers(1, 1, &gPointSampler);
 		gD3DContext->PSSetShader(gDepthPostProcess, nullptr, 0);
-		/*gD3DContext->PSSetShaderResources(1, 1, &gMovieSRV);
-		gD3DContext->PSSetSamplers(1, 1, &gTrilinearSampler);*/
+		gD3DContext->PSSetShaderResources(1, 1, &gDepthShaderView);
+
 	}
 
 	else if (postProcess == PostProcess::CelShading)
@@ -1409,8 +1409,19 @@ void PolygonPostProcess(PostProcess postProcess, const std::array<CVector3, 4> &
 
 	
 
-		if (currentList.size() % 2 == 0)
-		{
+		//if (currentList.size() % 2 == 0)
+		//{
+		//	// First perform a full-screen copy of the scene to back-buffer
+		//	FullScreenPostProcess(PostProcess::Copy, 0, 1, 0);
+
+		//	gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[1], gDepthStencil);
+
+		//	gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[0]);
+
+
+		//}
+		//else
+		//{
 			// First perform a full-screen copy of the scene to back-buffer
 			FullScreenPostProcess(PostProcess::Copy, 0, 0, 1);
 
@@ -1418,18 +1429,7 @@ void PolygonPostProcess(PostProcess postProcess, const std::array<CVector3, 4> &
 
 			gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[1]);
 
-
-		}
-		else
-		{
-			// First perform a full-screen copy of the scene to back-buffer
-			FullScreenPostProcess(PostProcess::Copy, 0, 0, 1);
-
-			gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[0], gDepthStencil);
-
-			gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[1]);
-
-		}
+		//}
 	
 
 	
@@ -1626,19 +1626,19 @@ void RenderScene()
 	// If using post-processing then render to the scene texture, otherwise to the usual back buffer
 	// Also clear the render target to a fixed colour and the depth buffer to the far distance
 
-		// Setup the viewport to the size of the shadow map texture
-	vp.Width = static_cast<FLOAT>(gViewportWidth);
-	vp.Height = static_cast<FLOAT>(gViewportHeight);
-	vp.MinDepth = 0.0f;
-	vp.MaxDepth = 1.0f;
-	vp.TopLeftX = 0;
-	vp.TopLeftY = 0;
-	gD3DContext->RSSetViewports(1, &vp);
+	//	// Setup the viewport to the size of the shadow map texture
+	//vp.Width = static_cast<FLOAT>(gViewportWidth);
+	//vp.Height = static_cast<FLOAT>(gViewportHeight);
+	//vp.MinDepth = 0.0f;
+	//vp.MaxDepth = 1.0f;
+	//vp.TopLeftX = 0;
+	//vp.TopLeftY = 0;
+	//gD3DContext->RSSetViewports(1, &vp);
 
-	// Select the shadow map texture as the current depth buffer. We will not be rendering any pixel colours
-	// Also clear the the shadow map depth buffer to the far distance
-	gD3DContext->OMSetRenderTargets(0, nullptr, gSceneDepthStencil);
-	gD3DContext->ClearDepthStencilView(gSceneDepthStencil, D3D11_CLEAR_DEPTH, 1.0f, 0);
+	//// Select the shadow map texture as the current depth buffer. We will not be rendering any pixel colours
+	//// Also clear the the shadow map depth buffer to the far distance
+	//gD3DContext->OMSetRenderTargets(0, nullptr, gSceneDepthStencil);
+	//gD3DContext->ClearDepthStencilView(gSceneDepthStencil, D3D11_CLEAR_DEPTH, 1.0f, 0);
 
 
 
@@ -1676,11 +1676,11 @@ void RenderScene()
 
 	// Render the scene from the main camera
 
-	//RenderSceneFromCamera(gCamera);
+	RenderSceneFromCamera(gCamera);
 
-	ColourRGBA white = { 1,1,1 };
-	gD3DContext->ClearRenderTargetView(gSceneRenderTarget[0], &white.r);
-	RenderDepthBufferFromLight();
+	//ColourRGBA white = { 1,1,1 };
+	//gD3DContext->ClearRenderTargetView(gSceneRenderTarget[0], &white.r);
+	//RenderDepthBufferFromLight();
 
 
 	////--------------- Scene completion ---------------////
@@ -1716,34 +1716,62 @@ void RenderScene()
 				postProcessPoly[i]->distance = dist;
 			}
 
-			
-				for (int i = 0; i < postProcessPoly.size() - 1; i++)
-				{
-					if (postProcessPoly[i]->distance < postProcessPoly[i + 1]->distance)
-					{
-						std::swap(postProcessPoly[i], postProcessPoly[i + 1]);
-					}
-				}
-			
 
-
-
-			for (int i = 0; i < postProcessPoly.size(); i++)
+			for (int i = 0; i < postProcessPoly.size() - 1; i++)
 			{
-				for (int j = 0; j < postProcessPoly[i]->process.size(); j++)
+				if (postProcessPoly[i]->distance < postProcessPoly[i + 1]->distance)
 				{
-					PolygonPostProcess(postProcessPoly[i]->process[j], postProcessPoly[i]->points, postProcessPoly[i]->polyMatrix, i);
-					gD3DContext->PSSetShaderResources(0, 1, &nullSRV);
+					std::swap(postProcessPoly[i], postProcessPoly[i + 1]);
+				}
+			}
+
+
+			if (!postProcessOrder.empty())
+			{
+
+				for (int i = 0; i < postProcessPoly.size(); i++)
+				{
+					for (int j = 0; j < postProcessPoly[i]->process.size(); j++)
+					{
+
+
+
+
+						if (postProcessPoly[i]->process[j] == PostProcess::Bloom)
+						{
+							if (j % 2 == 0)
+							{
+								FullScreenPostProcess(PostProcess::Copy, 0, 0, 4);
+							}
+							else
+							{
+								FullScreenPostProcess(PostProcess::Copy, 0, 1, 4);
+							}
+
+
+
+						}
+						PolygonPostProcess(postProcessPoly[i]->process[j], postProcessPoly[i]->points, postProcessPoly[i]->polyMatrix, i);
+
+
+
+
+
+
+
+
+
+						gD3DContext->PSSetShaderResources(0, 1, &nullSRV);
+					}
 				}
 			}
 		}
-
 		// Run any post-processing steps
 		if (!currentList.empty())
 		{
 			for (int i = 0; i < currentList.size(); i++)
 			{
-				if (gFullPostProcessMode == true)
+				if (gFullPostProcessMode == true )
 				{
 					if (currentList[i] == PostProcess::Bloom)
 					{
@@ -1767,6 +1795,13 @@ void RenderScene()
 				gD3DContext->PSSetShaderResources(0, 1, &nullSRV);
 			}
 		}
+
+		
+		
+		
+		
+
+
 
 
 		// These lines unbind the scene texture from the pixel shader to stop DirectX issuing a warning when we try to render to it again next frame
@@ -1909,12 +1944,12 @@ void RenderScene()
 
 			if (ImGui::Button("Bloom", ImVec2(100, 20)))
 			{
-				gCurrentPostProcess = PostProcess::Bloom, currentList.push_back(gCurrentPostProcess),
-					gCurrentPostProcess = PostProcess::Blur, currentList.push_back(gCurrentPostProcess),
-					gCurrentPostProcess = PostProcess::SecondBlur, currentList.push_back(gCurrentPostProcess),
-					gCurrentPostProcess = PostProcess::Blur, currentList.push_back(gCurrentPostProcess),
-					gCurrentPostProcess = PostProcess::SecondBlur, currentList.push_back(gCurrentPostProcess),
-					gCurrentPostProcess = PostProcess::Combine, currentList.push_back(gCurrentPostProcess);
+			    gCurrentPostProcess = PostProcess::Bloom, currentList.push_back(gCurrentPostProcess),
+				gCurrentPostProcess = PostProcess::Blur, currentList.push_back(gCurrentPostProcess),
+				gCurrentPostProcess = PostProcess::SecondBlur, currentList.push_back(gCurrentPostProcess),
+				gCurrentPostProcess = PostProcess::Blur, currentList.push_back(gCurrentPostProcess),
+				gCurrentPostProcess = PostProcess::SecondBlur, currentList.push_back(gCurrentPostProcess),
+				gCurrentPostProcess = PostProcess::Combine, currentList.push_back(gCurrentPostProcess);
 			}
 
 			if (ImGui::Button("CelShading", ImVec2(100, 20)))
@@ -2022,10 +2057,6 @@ void RenderScene()
 			TVList.clear();
 		}
 
-
-
-
-
 		ImGui::TreePop();
 	}
 
@@ -2102,12 +2133,21 @@ void RenderScene()
 					currentSelectedPoly->process.push_back(PostProcess::Combine);
 				}
 
+				if (ImGui::Button("Bloom", ImVec2(100, 20)))
+				{
+					currentSelectedPoly->process.push_back(PostProcess::Bloom);
+					currentSelectedPoly->process.push_back(PostProcess::Blur);
+					currentSelectedPoly->process.push_back(PostProcess::SecondBlur);
+					currentSelectedPoly->process.push_back(PostProcess::Blur);
+					currentSelectedPoly->process.push_back(PostProcess::SecondBlur);
+					currentSelectedPoly->process.push_back(PostProcess::Combine);
+				}
+
 				if (ImGui::Button("Clear Window", ImVec2(100, 20)))
 				{
 					currentSelectedPoly->process.push_back(PostProcess::Copy);
 					currentSelectedPoly->process.clear();
 				}
-
 
 			}
 
@@ -2172,17 +2212,6 @@ void RenderScene()
 		}
 
 	}
-
-
-
-
-
-
-
-
-
-
-
 }
 
 
@@ -2218,11 +2247,7 @@ void UpdateScene(float frameTime)
 		gCurrentPostProcess = PostProcess::Combine, currentList.push_back(gCurrentPostProcess);
 	if (KeyHit(Key_9))   gCurrentPostProcess = PostProcess::Copy, currentList.push_back(gCurrentPostProcess);
 	if (KeyHit(Key_0))   gCurrentPostProcess = PostProcess::None, currentList.clear();
-	if (KeyHit(Key_Numpad0))  gCurrentPostProcess = PostProcess::Bloom, currentList.push_back(gCurrentPostProcess),
-		gCurrentPostProcess = PostProcess::Depth, currentList.push_back(gCurrentPostProcess),
-		gCurrentPostProcess = PostProcess::Blur, currentList.push_back(gCurrentPostProcess),
-		gCurrentPostProcess = PostProcess::SecondBlur, currentList.push_back(gCurrentPostProcess),
-		gCurrentPostProcess = PostProcess::Combine, currentList.push_back(gCurrentPostProcess);
+	if (KeyHit(Key_Numpad0))  gCurrentPostProcess = PostProcess::LightBeams, currentList.push_back(gCurrentPostProcess);
 	if (KeyHit(Key_Numpad1))  gCurrentPostProcess = PostProcess::CelShading, currentList.push_back(gCurrentPostProcess);
 	if (KeyHit(Key_Numpad2))  gCurrentPostProcess = PostProcess::Invert, currentList.push_back(gCurrentPostProcess);
 	if (KeyHit(Key_Numpad3))  gCurrentPostProcess = PostProcess::Retro, currentList.push_back(gCurrentPostProcess);
@@ -2335,8 +2360,8 @@ void UpdateScene(float frameTime)
 	{
 		ModelSelected = MoveNearestEntity;
 
-		MousePixel.x = GetMouseX();
-		MousePixel.y = GetMouseY();
+		//MousePixel.x = GetMouseX();
+		//MousePixel.y = GetMouseY();
 
 		CVector3 modelRotation = ModelSelected->Rotation();
 		if (KeyHeld(Key_Comma))
@@ -2353,10 +2378,10 @@ void UpdateScene(float frameTime)
 
 		int newMouseWheelPos = 0;
 
-
+		//gCamera->ViewMatrix().Transpose();
 		CMatrix4x4 camtest = gCamera->WorldMatrix();
 		CVector3 worldpt = gCamera->WorldPtFromPixel(MousePixel, gViewportWidth, gViewportHeight); //Mouse world pos
-		CVector3 camPos = gCamera->ViewMatrix().GetPosition(); //Main cam pos
+		CVector3 camPos = camtest.GetPosition(); //Main cam pos
 		CVector3 rayCast = Normalise(worldpt - camPos);   //World point to camera direction 
 
 		//t = -camPos.y / rayCast.y;

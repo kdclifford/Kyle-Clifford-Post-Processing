@@ -19,7 +19,10 @@ SamplerState PointSample : register(s0); // We don't usually want to filter (bil
 // This shader also uses a "burn" texture, which is basically a height map that the burn level ascends
 SamplerState TrilinearWrap : register(s1);
 
-
+float random(float2 uv)
+{
+    return frac(sin(dot(uv, float2(15.5151, 42.2561))) * 12341.14122 * sin(gScanLineTimer * 0.3));
+}
 //--------------------------------------------------------------------------------------
 // Shader code
 //--------------------------------------------------------------------------------------
@@ -31,7 +34,8 @@ float4 main(PostProcessingInput input) : SV_Target
     
     colour.r = 1.0f - colour.r;
     colour.g = 1.0f - colour.g;
-    colour.b = 1.0f - colour.b;
+    colour.b = 1.0f - colour.b;   
     
-    return float4(colour, 1.0f);
+    
+        return float4(colour, 1.0f);
 }

@@ -25,10 +25,29 @@ SamplerState PointSample : register(s1); // This sampler switches off filtering 
 // Shader code
 //--------------------------------------------------------------------------------------
 
+static const int NUM_STEPS = 64;
+static const float NUM_DELTA = 1.0 / 64.0f;
+
 // Pixel shader entry point - each shader has a "main" function
 float4 main(PostProcessingInput input) : SV_Target
 {                                     
-    int NUM_SAMPLES = 164;
+    int NUM_SAMPLES = 64;
+    
+    float2 dirToLight = (gLight2ScreenSpacePos - input.sceneUV);
+    float lengthToLight = length(dirToLight);
+    dirToLight = normalize(dirToLight);
+    
+    float deltaLen = min(1, lengthToLight * NUM_DELTA);
+   
+    float2 rayDelta = dirToLight * deltaLen;
+   
+    float stepDecay = 20 * deltaLen;
+    
+    
+    float decay = 1;
+    float rayIntensity = 0.0f;
+    
+    const float2 centreUV = gArea2DTopLeft + gArea2DSize * 0.5f;
     
     const float Exposure = 1.0; // Directly scale the effect (0 = no effect, 1 = full)
     const float MyDecay = -0.0;
@@ -48,23 +67,36 @@ float4 main(PostProcessingInput input) : SV_Target
     //https://devansh.space/screen-space-god-rays/
     
     float Density = 1;
+    float2 rayOffset = float2(0.0, 0.0);
     
-    
-    float2 newuv = float2(0.5, 0.5);
+    float2 newuv = float2(0.0, 1.0);
   	// Evaluate summation from Equation 3 NUM_SAMPLES iterations.  
     for (int i = 0; i < NUM_SAMPLES; i++)
     {
+        float2 sampPos = input.sceneUV + rayOffset;
+        
 	    // Step sample location along ray.  
-        float2 uv = lerp(input.sceneUV, newuv, float(i) / float(NUM_SAMPLES - 1));
+        float2 uv = lerp(input.sceneUV, centreUV, float(i) / float(NUM_SAMPLES - 1));
        // uv = -uv;
     	// Retrieve sample at new location.  
         float3 sampl = SceneTexture.Sample(PointSample, uv);
+        float3 fCurIntensity = SceneTexture.SampleLevel(PointSample, sampPos, 0.0);
         pixelBrightness = (sampl.r + sampl.g + sampl.b) / 3;
         //if (pixelBrightness > 0.7f)
         //{
         //    break;
         //}
     	// Apply sample attenuation scale/decay factors.  
+        
+        rayIntensity += fCurIntensity * decay;
+
+        // Advance to the next position
+        rayOffset += rayDelta;
+
+        // Update the decay
+        decay = saturate(decay - stepDecay);
+        
+        
         sampl *= illuminationDecay * Weight;
     	// Accumulate combined color.  
         colour += sampl;
