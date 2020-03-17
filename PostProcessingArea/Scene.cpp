@@ -98,7 +98,7 @@ bool lockFPS = true;
 std::vector<Model*> allModels;
 float t = 100;
 int oldMouseWheelPos = 0;
-
+float camFar = 0.1;
 
 //const int kernalSize = 64;
 
@@ -1659,6 +1659,7 @@ void RenderScene()
 
 	gD3DContext->ClearDepthStencilView(gDepthStencil, D3D11_CLEAR_DEPTH, 1.0f, 0);
 
+	
 
 	// Setup the viewport to the size of the main window
 
@@ -1819,7 +1820,7 @@ void RenderScene()
 	// You can draw ImGUI elements at any time between the frame preparation code at the top
 	// of this function, and the finalisation code below
 
-	ImGui::ShowDemoWindow();
+	//ImGui::ShowDemoWindow();
 
 	ImGui::Begin("Main Menu", 0, ImGuiWindowFlags_AlwaysAutoResize);
 	//ImGui::SliderFloat("Colour", &gPostProcessingConstants.tintColour.x, 1, 20);
@@ -1900,6 +1901,8 @@ void RenderScene()
 	ImGui::SliderFloat("Red", &gPostProcessingConstants.waterColour.x, 0, 1);
 	ImGui::SliderFloat("Green", &gPostProcessingConstants.waterColour.y, 0, 1);
 	ImGui::SliderFloat("Blue", &gPostProcessingConstants.waterColour.z, 0, 1);
+	ImGui::SliderFloat("FarClip", &camFar, 0.0001f, 10000.0f);
+	gCamera->SetFarClip(camFar);
 
 	//ImGui::SliderFloat("Colour Green", &gPostProcessingConstants.tintColour.y, 0, 1);
 	//ImGui::SliderFloat("Colour Blue", &gPostProcessingConstants.tintColour.z, 0, 1);
