@@ -158,6 +158,7 @@ CVector3 gAmbientColour = { 0.3f, 0.3f, 0.4f }; // Background level of light (sl
 float    gSpecularPower = 256; // Specular power controls shininess - same for all models in this app
 
 ColourRGBA gBackgroundColor = { 0.3f, 0.3f, 0.4f, 1.0f };
+ColourRGBA gBlackColor = { 0.0f, 0.0f, 0.0f, 0.0f };
 
 // Variables controlling light1's orbiting of the cube
 const float gLightOrbitRadius = 20.0f;
@@ -216,7 +217,7 @@ ID3D11ShaderResourceView* gLightDiffuseMapSRV = nullptr;
 //****************************
 // Post processing textures
 
-const int amountOfTextures = 7;
+const int amountOfTextures = 8;
 
 // This texture will have the scene renderered on it. Then the texture is then used for post-processing
 ID3D11Texture2D* gSceneTexture[amountOfTextures]; // This object represents the memory used by the texture on the GPU
@@ -1103,7 +1104,7 @@ void SelectPostProcessShaderAndTextures(PostProcess postProcess, int index)
 	else if (postProcess == PostProcess::Depth)
 	{
 		gD3DContext->PSSetShader(gDepthPostProcess, nullptr, 0);
-		gD3DContext->PSSetShaderResources(1, 1, &gDepthShaderView);
+		gD3DContext->PSSetShaderResources(1, 1, &gSceneTextureSRV[7]);
 
 	}
 
@@ -1643,8 +1644,6 @@ void RenderScene()
 
 
 
-
-
 	if (!currentList.empty())
 	{
 		gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[0], gDepthStencil);
@@ -1674,7 +1673,7 @@ void RenderScene()
 	vp.TopLeftY = 0;
 	gD3DContext->RSSetViewports(1, &vp);
 
-
+	gCamera->SetFarClip(10000.0f);
 	// Render the scene from the main camera
 
 	RenderSceneFromCamera(gCamera);
@@ -1687,6 +1686,30 @@ void RenderScene()
 	////--------------- Scene completion ---------------////
 
 
+	gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[7], gDepthStencil);
+	gD3DContext->ClearRenderTargetView(gSceneRenderTarget[7], &gBlackColor.r);
+
+	gD3DContext->ClearDepthStencilView(gDepthStencil, D3D11_CLEAR_DEPTH, 1.0f, 0);
+
+
+
+	// Setup the viewport to the size of the main window
+
+	//gD3DContext->PSSetShaderResources(1, 1, &gDepthShaderView);
+	//gD3DContext->PSSetSamplers(1, 1, &gPointSampler);
+
+	vp.Width = static_cast<FLOAT>(gViewportWidth);
+	vp.Height = static_cast<FLOAT>(gViewportHeight);
+	vp.MinDepth = 0.0f;
+	vp.MaxDepth = 1.0f;
+	vp.TopLeftX = 0;
+	vp.TopLeftY = 0;
+	gD3DContext->RSSetViewports(1, &vp);
+
+	gCamera->SetFarClip(camFar);
+	// Render the scene from the main camera
+
+	RenderSceneFromCamera(gCamera);
 
 
 	
@@ -2250,7 +2273,9 @@ void UpdateScene(float frameTime)
 		gCurrentPostProcess = PostProcess::Combine, currentList.push_back(gCurrentPostProcess);
 	if (KeyHit(Key_9))   gCurrentPostProcess = PostProcess::Copy, currentList.push_back(gCurrentPostProcess);
 	if (KeyHit(Key_0))   gCurrentPostProcess = PostProcess::None, currentList.clear();
-	if (KeyHit(Key_Numpad0))  gCurrentPostProcess = PostProcess::LightBeams, currentList.push_back(gCurrentPostProcess);
+	if (KeyHit(Key_Numpad0))  gCurrentPostProcess = PostProcess::Blur, currentList.push_back(gCurrentPostProcess),
+		gCurrentPostProcess = PostProcess::SecondBlur, currentList.push_back(gCurrentPostProcess),
+	gCurrentPostProcess = PostProcess::Depth, currentList.push_back(gCurrentPostProcess);
 	if (KeyHit(Key_Numpad1))  gCurrentPostProcess = PostProcess::CelShading, currentList.push_back(gCurrentPostProcess);
 	if (KeyHit(Key_Numpad2))  gCurrentPostProcess = PostProcess::Invert, currentList.push_back(gCurrentPostProcess);
 	if (KeyHit(Key_Numpad3))  gCurrentPostProcess = PostProcess::Retro, currentList.push_back(gCurrentPostProcess);

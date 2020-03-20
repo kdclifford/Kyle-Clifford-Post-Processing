@@ -1,14 +1,9 @@
-﻿  Scene.cpp
-D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\Scene.cpp(101,19): warning C4305:  'initializing': truncation from 'double' to 'float'
-D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\Scene.cpp(291,13): warning C4244:  'initializing': conversion from 'double' to 'float', possible loss of data
-D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\Scene.cpp(291,8): warning C4101:  'r': unreferenced local variable
-D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\Scene.cpp(684,77): warning C4305:  'argument': truncation from 'double' to 'float'
-D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\Scene.cpp(2191,26): warning C4244:  '=': conversion from 'int' to 'float', possible loss of data
-D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\Scene.cpp(2192,26): warning C4244:  '=': conversion from 'int' to 'float', possible loss of data
-D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\Scene.cpp(2197,27): warning C4244:  '=': conversion from 'int' to 'float', possible loss of data
-D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\Scene.cpp(2198,27): warning C4244:  '=': conversion from 'int' to 'float', possible loss of data
-D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\Scene.cpp(2269,33): warning C4267:  'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\Scene.cpp(2356,26): warning C4244:  '=': conversion from 'int' to 'float', possible loss of data
-D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\Scene.cpp(2357,26): warning C4244:  '=': conversion from 'int' to 'float', possible loss of data
-D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\Scene.cpp(2422,79): warning C4305:  'argument': truncation from 'double' to 'float'
-  PostProcessingArea.vcxproj -> D:\Users\KClifford1\Documents\GitHub\post-process-assignment\PostProcessingArea\\PostProcessingArea.exe
+﻿C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\Depth_pp.hlsl(34,12-72): warning X3206: implicit truncation of vector type
+C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\Depth_pp.hlsl(37,23-32): warning X3081: comma expression used where a vector constructor may have been intended
+C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\Depth_pp.hlsl(37,23-38): warning X3081: comma expression used where a vector constructor may have been intended
+C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\Depth_pp.hlsl(37,23-44): warning X3081: comma expression used where a vector constructor may have been intended
+C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\Depth_pp.hlsl(44,3-22): warning X3206: implicit truncation of vector type
+C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\Depth_pp.hlsl(49,3-21): warning X3206: implicit truncation of vector type
+  
+  compilation object save succeeded; see C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\Depth_pp.cso
+  PostProcessingArea.vcxproj -> C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\\PostProcessingArea.exe
