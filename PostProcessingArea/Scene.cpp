@@ -294,7 +294,7 @@ void CalculateWeights()
 	// sum is for normalization 
 
 
-	// generating 5x5 kernel 
+	// Generating kernel 
 	for (int x = 0; x < oddSize; x++)
 	{
 		GKernel[x] = (float)exp(-0.5 * pow((x - mean) / sigma, 2.0)) / (sigma * sqrt(2 * 3.1415f));
@@ -1924,7 +1924,7 @@ void RenderScene()
 	ImGui::SliderFloat("Red", &gPostProcessingConstants.waterColour.x, 0, 1);
 	ImGui::SliderFloat("Green", &gPostProcessingConstants.waterColour.y, 0, 1);
 	ImGui::SliderFloat("Blue", &gPostProcessingConstants.waterColour.z, 0, 1);
-	ImGui::SliderFloat("FarClip", &camFar, 0.0001f, 10000.0f);
+	ImGui::SliderFloat("FarClip", &camFar, 0.0001f, 1000.0f);
 	gCamera->SetFarClip(camFar);
 
 	//ImGui::SliderFloat("Colour Green", &gPostProcessingConstants.tintColour.y, 0, 1);
@@ -2113,7 +2113,7 @@ void RenderScene()
 
 			if (currentSelectedPoly != NULL)
 			{
-				ImGui::Text("Poly Processes");
+				
 
 				if (ImGui::Button("Tint", ImVec2(100, 20)))
 				{

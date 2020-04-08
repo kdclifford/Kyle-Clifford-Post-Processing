@@ -23,7 +23,7 @@ SamplerState PointSample : register(s1); // This sampler switches off filtering 
 
 float4 main(PostProcessingInput input) : SV_Target
 {
-    float PixelX = (1 / gViewportWidth) ;
+    float PixelX = (1 / gViewportWidth);
     float PixelY = (1 / gViewportHeight);
     
     float3 ppColour = SceneTexture.Sample(PointSample, input.sceneUV);
@@ -32,15 +32,15 @@ float4 main(PostProcessingInput input) : SV_Target
 	
     float e11 = SceneTexture.Sample(PointSample, input.sceneUV + float2(-PixelX, -PixelY));
     float e12 = SceneTexture.Sample(PointSample, input.sceneUV + float2(0, -PixelY));
-    float e13 = SceneTexture.Sample(PointSample, input.sceneUV + float2(+PixelX, -PixelY));
+    float e13 = SceneTexture.Sample(PointSample, input.sceneUV + float2(PixelX, -PixelY));
                                                
     float e21 = SceneTexture.Sample(PointSample, input.sceneUV + float2(-PixelX, 0));
     float e22 = SceneTexture.Sample(PointSample, input.sceneUV + float2(0, 0));
-    float e23 = SceneTexture.Sample(PointSample, input.sceneUV + float2(+PixelX, 0));
+    float e23 = SceneTexture.Sample(PointSample, input.sceneUV + float2(PixelX, 0));
                                                
-    float e31 = SceneTexture.Sample(PointSample, input.sceneUV + float2(-PixelX, +PixelY));
-    float e32 = SceneTexture.Sample(PointSample, input.sceneUV + float2(0, +PixelY));
-    float e33 = SceneTexture.Sample(PointSample, input.sceneUV + float2(+PixelX, +PixelY));
+    float e31 = SceneTexture.Sample(PointSample, input.sceneUV + float2(-PixelX, PixelY));
+    float e32 = SceneTexture.Sample(PointSample, input.sceneUV + float2(0, PixelY));
+    float e33 = SceneTexture.Sample(PointSample, input.sceneUV + float2(PixelX, PixelY));
 
     float t1 = e13 + e33 + (2 * e23) - e11 - (2 * e21) - e31;
     float t2 = e31 + (2 * e32) + e33 - e11 - (2 * e12) - e13;
