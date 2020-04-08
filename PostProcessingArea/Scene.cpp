@@ -78,6 +78,7 @@ float GKernel[KernelMaxSize];
 auto gCurrentPostProcess = PostProcess::None;
 //auto gTvPostProcess = PostProcess(rand() % int(PostProcess::AmountOfPosts) + int(PostProcess::None));
 std::vector<PostProcess> currentList;
+std::vector<PostProcess> AreaList;
 std::vector<PostProcess> TVList;
 //std::vector<PostProcess> polyList{ PostProcess::Tint, PostProcess::Spiral, PostProcess::Retro, PostProcess::Tint, PostProcess::UnderWater, };
 bool gFullPostProcessMode = true;
@@ -1318,27 +1319,35 @@ void FullScreenPostProcess(PostProcess postProcess, int pass, int firstTexture, 
 void AreaPostProcess(PostProcess postProcess, CVector3 worldPoint, CVector2 areaSize)
 {
 
-	if (currentList.size() % 2 == 0)
-	{
-		// First perform a full-screen copy of the scene to back-buffer
-		FullScreenPostProcess(PostProcess::Copy, 0, 0, 1);
+	//if (currentList.size() % 2 == 0)
+	//{
+	//	// First perform a full-screen copy of the scene to back-buffer
+	//	FullScreenPostProcess(PostProcess::Copy, 0, 0, 1);
 
-		gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[0], gDepthStencil);
+	//	gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[0], gDepthStencil);
 
-		gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[1]);
+	//	gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[1]);
 
 
-	}
-	else
-	{
-		// First perform a full-screen copy of the scene to back-buffer
-		FullScreenPostProcess(PostProcess::Copy, 0, 1, 0);
+	//}
+	//else
+	//{
+	//	// First perform a full-screen copy of the scene to back-buffer
+	//	FullScreenPostProcess(PostProcess::Copy, 0, 1, 0);
 
-		gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[1], gDepthStencil);
+	//	gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[1], gDepthStencil);
 
-		gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[0]);
+	//	gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[0]);
 
-	}
+	//}
+
+	FullScreenPostProcess(PostProcess::Copy, 0, 0, 1);
+
+	gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[0], gDepthStencil);
+
+	gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[1]);
+
+
 
 	// Now perform a post-process of a portion of the scene to the back-buffer (overwriting some of the copy above)
 	// Note: The following code relies on many of the settings that were prepared in the FullScreenPostProcess call above, it only
@@ -1351,7 +1360,7 @@ void AreaPostProcess(PostProcess postProcess, CVector3 worldPoint, CVector2 area
 	// Enable alpha blending - area effects need to fade out at the edges or the hard edge of the area is visible
 	// A couple of the shaders have been updated to put the effect into a soft circle
 	// Alpha blending isn't enabled for fullscreen and polygon effects so it doesn't affect those (except heat-haze, which works a bit differently)
-	gD3DContext->OMSetBlendState(gAlphaBlendingState, nullptr, 0xffffff);
+	gD3DContext->OMSetBlendState(gNoBlendingState, nullptr, 0xffffff);
 
 
 	// Use picking methods to find the 2D position of the 3D point at the centre of the area effect
@@ -1718,8 +1727,25 @@ void RenderScene()
 
 		if (gAreaPostProcessMode == true)
 		{
+			for (int i = 0; i < AreaList.size(); i++)
+			{
+				if (AreaList[i] == PostProcess::Bloom)
+				{
+					if (i % 2 == 0)
+					{
+						FullScreenPostProcess(PostProcess::Copy, 0, 0, 4);
+					}
+					else
+					{
+						FullScreenPostProcess(PostProcess::Copy, 0, 1, 4);
+					}
+
+
+
+				}
 			// Pass a 3D point for the centre of the affected area and the size of the (rectangular) area in world units
-			AreaPostProcess(gCurrentPostProcess, ModelSelected->Position(), { 10, 10 });
+			AreaPostProcess(AreaList[i], ModelSelected->Position(), { 10, 10 });
+			}
 		}
 
 		if (gPolyPostProcessMode == true)
@@ -2184,6 +2210,106 @@ void RenderScene()
 	}
 
 
+	if (gAreaPostProcessMode)
+	{
+
+		if (ImGui::TreeNode("Area Post Processes"))
+		{
+
+		/*	for (int i = 0; i < postProcessOrder.size(); i++)
+			{
+				if (i > 0)
+					ImGui::SameLine();
+				ImGui::PushID(i);
+				ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(i / 7.0f, 0.6f, 0.6f));
+				ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(i / 7.0f, 0.7f, 0.7f));
+				ImGui::PushStyleColor(ImGuiCol_ButtonActive, (ImVec4)ImColor::HSV(i / 7.0f, 0.8f, 0.8f));
+				if (ImGui::Button(postProcessOrder[i]->name.c_str(), ImVec2(100, 20)))
+				{
+					currentSelectedPoly = postProcessOrder[i];
+				}
+				ImGui::PopStyleColor(3);
+				ImGui::PopID();
+			}*/
+
+
+
+
+			
+
+
+				if (ImGui::Button("Tint", ImVec2(100, 20)))
+				{
+					AreaList.push_back(PostProcess::Tint);
+				}
+
+				if (ImGui::Button("Retro", ImVec2(100, 20)))
+				{
+					AreaList.push_back(PostProcess::Retro);
+				}
+				if (ImGui::Button("Burn", ImVec2(100, 20)))
+				{
+					AreaList.push_back(PostProcess::Burn);
+				}
+
+				if (ImGui::Button("Grey Noise", ImVec2(100, 20)))
+				{
+					AreaList.push_back(PostProcess::GreyNoise);
+				}
+
+				if (ImGui::Button("Blur", ImVec2(100, 20)))
+				{
+					AreaList.push_back(PostProcess::Blur);
+					AreaList.push_back(PostProcess::SecondBlur);
+				}
+
+				if (ImGui::Button("Water", ImVec2(100, 20)))
+				{
+					AreaList.push_back(PostProcess::UnderWater);
+				}
+
+				if (ImGui::Button("Invert", ImVec2(100, 20)))
+				{
+					AreaList.push_back(PostProcess::Invert);
+				}
+
+				if (ImGui::Button("Light Beam", ImVec2(100, 20)))
+				{
+					AreaList.push_back(PostProcess::Bloom);
+					AreaList.push_back(PostProcess::LightBeams);
+					AreaList.push_back(PostProcess::Blur);
+					AreaList.push_back(PostProcess::SecondBlur);
+					AreaList.push_back(PostProcess::Combine);
+				}
+
+				if (ImGui::Button("Bloom", ImVec2(100, 20)))
+				{
+					AreaList.push_back(PostProcess::Bloom);
+					AreaList.push_back(PostProcess::Blur);
+					AreaList.push_back(PostProcess::SecondBlur);
+					AreaList.push_back(PostProcess::Blur);
+					AreaList.push_back(PostProcess::SecondBlur);
+					AreaList.push_back(PostProcess::Combine);
+				}
+
+				if (ImGui::Button("Clear Window", ImVec2(100, 20)))
+				{
+					AreaList.push_back(PostProcess::Copy);
+					AreaList.clear();
+				}
+
+			
+
+
+			ImGui::TreePop();
+		}
+
+	}
+
+
+
+
+
 	ImGui::End();
 	//*******************************
 
@@ -2407,14 +2533,14 @@ void UpdateScene(float frameTime)
 		int newMouseWheelPos = 0;
 
 		//gCamera->ViewMatrix().Transpose();
-		CMatrix4x4 camtest = gCamera->WorldMatrix();
+		//CMatrix4x4 camtest = gCamera->WorldMatrix();
 		CVector3 worldpt = gCamera->WorldPtFromPixel(MousePixel, gViewportWidth, gViewportHeight); //Mouse world pos
-		CVector3 camPos = camtest.GetPosition(); //Main cam pos
+		CVector3 camPos = gCamera->Position(); //Main cam pos
 		CVector3 rayCast = Normalise(worldpt - camPos);   //World point to camera direction 
 
 		//t = -camPos.y / rayCast.y;
 
-			//ModelSelected->WorldMatrix().Transpose();
+			
 		t = Length(ModelSelected->Position() - camPos);
 
 		newMouseWheelPos = GetMouseWheel();
@@ -2426,14 +2552,14 @@ void UpdateScene(float frameTime)
 		{
 			t += -500 * frameTime;
 		}
-		//gCamera->WorldMatrix().Transpose();
+		
 		oldMouseWheelPos = newMouseWheelPos;
 		CVector3 newPos = camPos + t * rayCast;
 		if (ModelSelected != 0)
 		{
 			//Move to newPos decided by mouse position
 
-			ModelSelected->SetPosition(newPos);
+			//ModelSelected->SetPosition(newPos);
 
 
 		}

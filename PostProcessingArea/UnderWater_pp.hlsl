@@ -54,8 +54,8 @@ float4 main(PostProcessingInput input) : SV_Target
     ppAlpha *= saturate(SinX * SinY * 0.33f + 0.55f);
 
     float3 newColour = gWaterColour;
-    ppColour += newColour;
-   // ppColour.b += 0.5;
+    //ppColour += newColour;
+   ppColour.b += 0.5;
     
     return float4(ppColour, ppAlpha);
 
