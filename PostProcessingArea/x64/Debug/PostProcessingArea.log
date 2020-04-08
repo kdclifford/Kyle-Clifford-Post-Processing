@@ -1,14 +1,13 @@
 ﻿  Scene.cpp
-C:\Users\maymo\OneDrive\Desktop\post-process-assignment\PostProcessingArea\Scene.cpp(102,19): warning C4305:  'initializing': truncation from 'double' to 'float'
 C:\Users\maymo\OneDrive\Desktop\post-process-assignment\PostProcessingArea\Scene.cpp(293,13): warning C4244:  'initializing': conversion from 'double' to 'float', possible loss of data
 C:\Users\maymo\OneDrive\Desktop\post-process-assignment\PostProcessingArea\Scene.cpp(293,8): warning C4101:  'r': unreferenced local variable
-C:\Users\maymo\OneDrive\Desktop\post-process-assignment\PostProcessingArea\Scene.cpp(686,77): warning C4305:  'argument': truncation from 'double' to 'float'
-C:\Users\maymo\OneDrive\Desktop\post-process-assignment\PostProcessingArea\Scene.cpp(2340,26): warning C4244:  '=': conversion from 'int' to 'float', possible loss of data
-C:\Users\maymo\OneDrive\Desktop\post-process-assignment\PostProcessingArea\Scene.cpp(2341,26): warning C4244:  '=': conversion from 'int' to 'float', possible loss of data
-C:\Users\maymo\OneDrive\Desktop\post-process-assignment\PostProcessingArea\Scene.cpp(2346,27): warning C4244:  '=': conversion from 'int' to 'float', possible loss of data
-C:\Users\maymo\OneDrive\Desktop\post-process-assignment\PostProcessingArea\Scene.cpp(2347,27): warning C4244:  '=': conversion from 'int' to 'float', possible loss of data
-C:\Users\maymo\OneDrive\Desktop\post-process-assignment\PostProcessingArea\Scene.cpp(2420,33): warning C4267:  'initializing': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\maymo\OneDrive\Desktop\post-process-assignment\PostProcessingArea\Scene.cpp(2507,26): warning C4244:  '=': conversion from 'int' to 'float', possible loss of data
-C:\Users\maymo\OneDrive\Desktop\post-process-assignment\PostProcessingArea\Scene.cpp(2508,26): warning C4244:  '=': conversion from 'int' to 'float', possible loss of data
-C:\Users\maymo\OneDrive\Desktop\post-process-assignment\PostProcessingArea\Scene.cpp(2573,79): warning C4305:  'argument': truncation from 'double' to 'float'
+C:\Users\maymo\OneDrive\Desktop\post-process-assignment\PostProcessingArea\Scene.cpp(736,77): warning C4305:  'argument': truncation from 'double' to 'float'
+C:\Users\maymo\OneDrive\Desktop\post-process-assignment\PostProcessingArea\Scene.cpp(2430,26): warning C4244:  '=': conversion from 'int' to 'float', possible loss of data
+C:\Users\maymo\OneDrive\Desktop\post-process-assignment\PostProcessingArea\Scene.cpp(2431,26): warning C4244:  '=': conversion from 'int' to 'float', possible loss of data
+C:\Users\maymo\OneDrive\Desktop\post-process-assignment\PostProcessingArea\Scene.cpp(2436,27): warning C4244:  '=': conversion from 'int' to 'float', possible loss of data
+C:\Users\maymo\OneDrive\Desktop\post-process-assignment\PostProcessingArea\Scene.cpp(2437,27): warning C4244:  '=': conversion from 'int' to 'float', possible loss of data
+C:\Users\maymo\OneDrive\Desktop\post-process-assignment\PostProcessingArea\Scene.cpp(2510,33): warning C4267:  'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\maymo\OneDrive\Desktop\post-process-assignment\PostProcessingArea\Scene.cpp(2597,26): warning C4244:  '=': conversion from 'int' to 'float', possible loss of data
+C:\Users\maymo\OneDrive\Desktop\post-process-assignment\PostProcessingArea\Scene.cpp(2598,26): warning C4244:  '=': conversion from 'int' to 'float', possible loss of data
+C:\Users\maymo\OneDrive\Desktop\post-process-assignment\PostProcessingArea\Scene.cpp(2663,79): warning C4305:  'argument': truncation from 'double' to 'float'
   PostProcessingArea.vcxproj -> C:\Users\maymo\OneDrive\Desktop\post-process-assignment\PostProcessingArea\\PostProcessingArea.exe

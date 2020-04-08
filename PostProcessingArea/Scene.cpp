@@ -99,7 +99,7 @@ bool lockFPS = true;
 std::vector<Model*> allModels;
 float t = 100;
 int oldMouseWheelPos = 0;
-float camFar = 0.1;
+float camFar = 1000.0f;
 
 //const int kernalSize = 64;
 
@@ -218,7 +218,7 @@ ID3D11ShaderResourceView* gLightDiffuseMapSRV = nullptr;
 //****************************
 // Post processing textures
 
-const int amountOfTextures = 8;
+const int amountOfTextures = 9;
 
 // This texture will have the scene renderered on it. Then the texture is then used for post-processing
 ID3D11Texture2D* gSceneTexture[amountOfTextures]; // This object represents the memory used by the texture on the GPU
@@ -316,6 +316,56 @@ void CalculateWeights()
 		gPostProcessingConstants.weights[i].x = GKernel[i];
 	}
 }
+
+
+//Process Name
+
+std::string ProcessName(PostProcess process)
+{
+	switch (process)
+	{
+	case PostProcess::Tint :
+		return "Tint";
+	case PostProcess::Bloom :
+		return "Bloom";
+	case PostProcess::Blur:
+		return "Blur";
+	case PostProcess::Burn:
+		return "Burn";
+	case PostProcess::CelShading:
+		return "CelShading";
+	case PostProcess::Combine:
+		return "Combine";
+	case PostProcess::Copy:
+		return "Copy";
+	case PostProcess::Depth:
+		return "Depth";
+	case PostProcess::Distort:
+		return "Distort";
+	case PostProcess::GreyNoise:
+		return "GreyNoise";
+	case PostProcess::HeatHaze:
+		return "HeatHaze";
+	case PostProcess::Invert:
+		return "Invert";
+	case PostProcess::LightBeams:
+		return "LightBeams";
+	case PostProcess::Retro:
+		return "Retro";
+	case PostProcess::SecondBlur:
+		return "SecondBlur";
+	case PostProcess::Spiral:
+		return "Spiral";
+	case PostProcess::TV:
+		return "TV";
+	case PostProcess::UnderWater:
+		return "UnderWater";
+
+	}
+	
+	return "Error Not Found";
+}
+
 
 
 //--------------------------------------------------------------------------------------
@@ -1414,7 +1464,7 @@ void AreaPostProcess(PostProcess postProcess, CVector3 worldPoint, CVector2 area
 
 
 // Perform an post process from "scene texture" to back buffer within the given four-point polygon and a world matrix to position/rotate/scale the polygon
-void PolygonPostProcess(PostProcess postProcess, const std::array<CVector3, 4> & points, const CMatrix4x4& worldMatrix, int pass)
+void PolygonPostProcess(PostProcess postProcess, const std::array<CVector3, 4> & points, const CMatrix4x4& worldMatrix, int pass, int texture1, int texture2)
 {
 
 	
@@ -1435,9 +1485,9 @@ void PolygonPostProcess(PostProcess postProcess, const std::array<CVector3, 4> &
 			// First perform a full-screen copy of the scene to back-buffer
 			FullScreenPostProcess(PostProcess::Copy, 0, 0, 1);
 
-			gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[0], gDepthStencil);
+			gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[texture1], gDepthStencil);
 
-			gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[1]);
+			gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[texture2]);
 
 		//}
 	
@@ -1483,7 +1533,7 @@ void PolygonPostProcess(PostProcess postProcess, const std::array<CVector3, 4> &
 	gD3DContext->Draw(4, 0);
 
 
-	gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[0], gDepthStencil);
+	gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[texture1], gDepthStencil);
 
 	gD3DContext->Draw(4, 0);
 
@@ -1801,8 +1851,8 @@ void RenderScene()
 
 
 						}
-						PolygonPostProcess(postProcessPoly[i]->process[j], postProcessPoly[i]->points, postProcessPoly[i]->polyMatrix, i);
-
+						PolygonPostProcess(postProcessPoly[i]->process[j], postProcessPoly[i]->points, postProcessPoly[i]->polyMatrix, i, 0,1);
+						//PolygonPostProcess(postProcessPoly[i]->process[j], postProcessPoly[i]->points, postProcessPoly[i]->polyMatrix, i, 0, 7);
 
 
 
@@ -1939,18 +1989,15 @@ void RenderScene()
 		gPostProcessingConstants.tintColour2.z = color2.z;
 	}
 
-	if (ImGui::Button("Hue", ImVec2(100, 20)))
-	{
-		gPostProcessingConstants.hueOnOff = !gPostProcessingConstants.hueOnOff;
-	}
+
 
 
 	ImGui::SliderInt("Blur", &gPostProcessingConstants.kernalSize, 3, KernelMaxSize);
 
-	ImGui::SliderFloat("Red", &gPostProcessingConstants.waterColour.x, 0, 1);
-	ImGui::SliderFloat("Green", &gPostProcessingConstants.waterColour.y, 0, 1);
-	ImGui::SliderFloat("Blue", &gPostProcessingConstants.waterColour.z, 0, 1);
-	ImGui::SliderFloat("FarClip", &camFar, 0.0001f, 1000.0f);
+	//ImGui::SliderFloat("Red", &gPostProcessingConstants.waterColour.x, 0, 1);
+	//ImGui::SliderFloat("Green", &gPostProcessingConstants.waterColour.y, 0, 1);
+	//ImGui::SliderFloat("Blue", &gPostProcessingConstants.waterColour.z, 0, 1);
+	
 	gCamera->SetFarClip(camFar);
 
 	//ImGui::SliderFloat("Colour Green", &gPostProcessingConstants.tintColour.y, 0, 1);
@@ -1962,12 +2009,46 @@ void RenderScene()
 
 	if (gFullPostProcessMode)
 	{
-		if (ImGui::TreeNode("Screen Post Processes"))
+		if (ImGui::TreeNode("FullScreen Post Processes"))
 		{
+			
+			ImGui::Begin("Current Menu", 0, ImGuiWindowFlags_AlwaysAutoResize);
+			ImGui::Text("Current FullScreen Processes");
+
+			for (int i = 0; i < currentList.size(); i++)
+			{
+
+
+
+
+
+				ImGui::Text(ProcessName(currentList[i]).c_str());
+			}
+
+			ImGui::End();
+
+			ImGui::PushID(0);
+			ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(7.0f, 0.6f, 0.6f));
+			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(7.0f, 0.7f, 0.7f));
+			ImGui::PushStyleColor(ImGuiCol_ButtonActive, (ImVec4)ImColor::HSV(7.0f, 0.8f, 0.8f));
 			if (ImGui::Button("Tint", ImVec2(100, 20)))
 			{
 				gCurrentPostProcess = PostProcess::Tint, currentList.push_back(gCurrentPostProcess);
 			}
+		
+			ImGui::PopStyleColor(3);
+			ImGui::PopID();
+
+			ImGui::SameLine();
+
+		
+
+			if (ImGui::Button("Hue", ImVec2(100, 20)))
+			{
+				gPostProcessingConstants.hueOnOff = !gPostProcessingConstants.hueOnOff;
+			}
+
+			
 
 			if (ImGui::Button("Blur", ImVec2(100, 20)))
 			{
@@ -2038,6 +2119,15 @@ void RenderScene()
 			{
 				gCurrentPostProcess = PostProcess::TV, currentList.push_back(gCurrentPostProcess);
 			}
+
+			if (ImGui::Button("Depth of field", ImVec2(100, 20)))
+			{
+				gCurrentPostProcess = PostProcess::Blur, currentList.push_back(gCurrentPostProcess),
+					gCurrentPostProcess = PostProcess::SecondBlur, currentList.push_back(gCurrentPostProcess),
+					gCurrentPostProcess = PostProcess::Depth, currentList.push_back(gCurrentPostProcess);
+			}
+
+			ImGui::SliderFloat("FarClip", &camFar, 0.001f, 1000.0f);
 
 			if (ImGui::Button("Clear", ImVec2(100, 20)))
 			{
@@ -2382,30 +2472,30 @@ void UpdateScene(float frameTime)
 	if (KeyHit(Key_F2))  gAreaPostProcessMode = !gAreaPostProcessMode;
 	if (KeyHit(Key_F3))  gPolyPostProcessMode = !gPolyPostProcessMode;
 
-	if (KeyHit(Key_1)) 	gCurrentPostProcess = PostProcess::Tint, currentList.push_back(gCurrentPostProcess);
-	if (KeyHit(Key_2))  gCurrentPostProcess = PostProcess::GreyNoise, currentList.push_back(gCurrentPostProcess);
-	if (KeyHit(Key_3))  gCurrentPostProcess = PostProcess::Burn, currentList.push_back(gCurrentPostProcess);
-	if (KeyHit(Key_4))  gCurrentPostProcess = PostProcess::Distort, currentList.push_back(gCurrentPostProcess);
-	if (KeyHit(Key_5))  gCurrentPostProcess = PostProcess::Spiral, currentList.push_back(gCurrentPostProcess);
-	if (KeyHit(Key_6))  gCurrentPostProcess = PostProcess::HeatHaze, currentList.push_back(gCurrentPostProcess);
-	if (KeyHit(Key_7))  gCurrentPostProcess = PostProcess::Blur, currentList.push_back(gCurrentPostProcess),
-		gCurrentPostProcess = PostProcess::SecondBlur, currentList.push_back(gCurrentPostProcess);
+	//if (KeyHit(Key_1)) 	gCurrentPostProcess = PostProcess::Tint, currentList.push_back(gCurrentPostProcess);
+	//if (KeyHit(Key_2))  gCurrentPostProcess = PostProcess::GreyNoise, currentList.push_back(gCurrentPostProcess);
+	//if (KeyHit(Key_3))  gCurrentPostProcess = PostProcess::Burn, currentList.push_back(gCurrentPostProcess);
+	//if (KeyHit(Key_4))  gCurrentPostProcess = PostProcess::Distort, currentList.push_back(gCurrentPostProcess);
+	//if (KeyHit(Key_5))  gCurrentPostProcess = PostProcess::Spiral, currentList.push_back(gCurrentPostProcess);
+	//if (KeyHit(Key_6))  gCurrentPostProcess = PostProcess::HeatHaze, currentList.push_back(gCurrentPostProcess);
+	//if (KeyHit(Key_7))  gCurrentPostProcess = PostProcess::Blur, currentList.push_back(gCurrentPostProcess),
+	//	gCurrentPostProcess = PostProcess::SecondBlur, currentList.push_back(gCurrentPostProcess);
 
-	if (KeyHit(Key_8))  gCurrentPostProcess = PostProcess::Bloom, currentList.push_back(gCurrentPostProcess),
-		gCurrentPostProcess = PostProcess::Blur, currentList.push_back(gCurrentPostProcess),
-		gCurrentPostProcess = PostProcess::SecondBlur, currentList.push_back(gCurrentPostProcess),
-		/*  gCurrentPostProcess = PostProcess::Blur, currentList.push_back(gCurrentPostProcess),
-		  gCurrentPostProcess = PostProcess::SecondBlur, currentList.push_back(gCurrentPostProcess),*/
-		gCurrentPostProcess = PostProcess::Combine, currentList.push_back(gCurrentPostProcess);
-	if (KeyHit(Key_9))   gCurrentPostProcess = PostProcess::Copy, currentList.push_back(gCurrentPostProcess);
-	if (KeyHit(Key_0))   gCurrentPostProcess = PostProcess::None, currentList.clear();
-	if (KeyHit(Key_Numpad0))  gCurrentPostProcess = PostProcess::Blur, currentList.push_back(gCurrentPostProcess),
-		gCurrentPostProcess = PostProcess::SecondBlur, currentList.push_back(gCurrentPostProcess),
-	gCurrentPostProcess = PostProcess::Depth, currentList.push_back(gCurrentPostProcess);
-	if (KeyHit(Key_Numpad1))  gCurrentPostProcess = PostProcess::CelShading, currentList.push_back(gCurrentPostProcess);
-	if (KeyHit(Key_Numpad2))  gCurrentPostProcess = PostProcess::Invert, currentList.push_back(gCurrentPostProcess);
-	if (KeyHit(Key_Numpad3))  gCurrentPostProcess = PostProcess::Retro, currentList.push_back(gCurrentPostProcess);
-	if (KeyHit(Key_Numpad4))  gCurrentPostProcess = PostProcess::UnderWater, currentList.push_back(gCurrentPostProcess);
+	//if (KeyHit(Key_8))  gCurrentPostProcess = PostProcess::Bloom, currentList.push_back(gCurrentPostProcess),
+	//	gCurrentPostProcess = PostProcess::Blur, currentList.push_back(gCurrentPostProcess),
+	//	gCurrentPostProcess = PostProcess::SecondBlur, currentList.push_back(gCurrentPostProcess),
+	//	/*  gCurrentPostProcess = PostProcess::Blur, currentList.push_back(gCurrentPostProcess),
+	//	  gCurrentPostProcess = PostProcess::SecondBlur, currentList.push_back(gCurrentPostProcess),*/
+	//	gCurrentPostProcess = PostProcess::Combine, currentList.push_back(gCurrentPostProcess);
+	//if (KeyHit(Key_9))   gCurrentPostProcess = PostProcess::Copy, currentList.push_back(gCurrentPostProcess);
+	//if (KeyHit(Key_0))   gCurrentPostProcess = PostProcess::None, currentList.clear();
+	//if (KeyHit(Key_Numpad0))  gCurrentPostProcess = PostProcess::Blur, currentList.push_back(gCurrentPostProcess),
+	//	gCurrentPostProcess = PostProcess::SecondBlur, currentList.push_back(gCurrentPostProcess),
+	//gCurrentPostProcess = PostProcess::Depth, currentList.push_back(gCurrentPostProcess);
+	//if (KeyHit(Key_Numpad1))  gCurrentPostProcess = PostProcess::CelShading, currentList.push_back(gCurrentPostProcess);
+	//if (KeyHit(Key_Numpad2))  gCurrentPostProcess = PostProcess::Invert, currentList.push_back(gCurrentPostProcess);
+	//if (KeyHit(Key_Numpad3))  gCurrentPostProcess = PostProcess::Retro, currentList.push_back(gCurrentPostProcess);
+	//if (KeyHit(Key_Numpad4))  gCurrentPostProcess = PostProcess::UnderWater, currentList.push_back(gCurrentPostProcess);
 
 	if (KeyHeld(Key_Period) && !KeyHeld(Mouse_RButton))  zShift += 0.5f;
 	if (KeyHeld(Key_Comma) && !KeyHeld(Mouse_RButton))   zShift -= 0.5f;
