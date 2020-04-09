@@ -1936,17 +1936,18 @@ void RenderScene()
 
 			for (int i = 0; i < currentList.size(); i++)
 			{
-
-				ImGui::Text(ProcessName(currentList[i]).c_str());
-
-				ImGui::SameLine();
-				ImGui::PushID(i);
-				if (ImGui::Button("X", ImVec2(100, 20)))
+				if (ProcessName(currentList[i]) != "Copy")
 				{
-					currentList.erase(currentList.begin() + i);
-				}
-				ImGui::PopID();
+					ImGui::Text(ProcessName(currentList[i]).c_str());
 
+					ImGui::SameLine();
+					ImGui::PushID(i);
+					if (ImGui::Button("X", ImVec2(100, 20)))
+					{
+						currentList.erase(currentList.begin() + i);
+					}
+					ImGui::PopID();
+				}
 
 			}
 
@@ -2063,18 +2064,19 @@ void RenderScene()
 
 		for (int i = 0; i < TVList.size(); i++)
 		{
-
-			ImGui::Text(ProcessName(TVList[i]).c_str());
-
-			ImGui::SameLine();
-			ImGui::PushID(i);
-			if (ImGui::Button("X", ImVec2(100, 20)))
+			if (ProcessName(TVList[i]) != "Copy")
 			{
-				TVList.erase(TVList.begin() + i);
+				ImGui::Text(ProcessName(TVList[i]).c_str());
+
+				ImGui::SameLine();
+				ImGui::PushID(i);
+				if (ImGui::Button("X", ImVec2(100, 20)))
+				{
+					TVList.erase(TVList.begin() + i);
+				}
+				ImGui::PopID();
+
 			}
-			ImGui::PopID();
-
-
 		}
 
 		ImGui::End();
@@ -2092,6 +2094,7 @@ void RenderScene()
 		{
 			TVList.push_back(PostProcess::Retro);
 		}
+
 		if (ImGui::Button("Burn", ImVec2(100, 20)))
 		{
 			TVList.push_back(PostProcess::Burn);
@@ -2113,14 +2116,6 @@ void RenderScene()
 			TVList.push_back(PostProcess::UnderWater);
 		}
 
-		if (ImGui::Button("Light Beam", ImVec2(100, 20)))
-		{
-			TVList.push_back(PostProcess::Bloom);
-			TVList.push_back(PostProcess::LightBeams);
-			TVList.push_back(PostProcess::Blur);
-			TVList.push_back(PostProcess::SecondBlur);
-			TVList.push_back(PostProcess::Combine);
-		}
 
 		if (ImGui::Button("Invert", ImVec2(100, 20)))
 		{
@@ -2134,6 +2129,15 @@ void RenderScene()
 
 		}
 
+		if (ImGui::Button("CelShading", ImVec2(100, 20)))
+		{
+			TVList.push_back(PostProcess::CelShading);
+		}
+
+		if (ImGui::Button("HeatHaze", ImVec2(100, 20)))
+		{
+			TVList.push_back(PostProcess::HeatHaze);
+		}
 
 		if (ImGui::Button("Clear TV Screen", ImVec2(100, 20)))
 		{
@@ -2186,18 +2190,19 @@ void RenderScene()
 
 				for (int i = 0; i < currentSelectedPoly->process.size(); i++)
 				{
-
-					ImGui::Text(ProcessName(currentSelectedPoly->process[i]).c_str());
-
-					ImGui::SameLine();
-					ImGui::PushID(i);
-					if (ImGui::Button("X", ImVec2(100, 20)))
+					if (ProcessName(currentSelectedPoly->process[i]) != "Copy")
 					{
-						currentSelectedPoly->process.erase(currentSelectedPoly->process.begin() + i);
+						ImGui::Text(ProcessName(currentSelectedPoly->process[i]).c_str());
+
+						ImGui::SameLine();
+						ImGui::PushID(i);
+						if (ImGui::Button("X", ImVec2(100, 20)))
+						{
+							currentSelectedPoly->process.erase(currentSelectedPoly->process.begin() + i);
+						}
+						ImGui::PopID();
+
 					}
-					ImGui::PopID();
-
-
 				}
 
 				ImGui::End();
@@ -2264,6 +2269,22 @@ void RenderScene()
 					currentSelectedPoly->process.push_back(PostProcess::Combine);
 				}
 
+				if (ImGui::Button("CelShading", ImVec2(100, 20)))
+				{
+					currentSelectedPoly->process.push_back(PostProcess::CelShading);
+				}
+
+				if (ImGui::Button("HeatHaze", ImVec2(100, 20)))
+				{
+					currentSelectedPoly->process.push_back(PostProcess::HeatHaze);
+				}
+
+				if (ImGui::Button("TV Vision", ImVec2(100, 20)))
+				{
+					currentSelectedPoly->process.push_back(PostProcess::TV);
+
+				}
+
 				if (ImGui::Button("Clear Window", ImVec2(100, 20)))
 				{
 					currentSelectedPoly->process.push_back(PostProcess::Copy);
@@ -2290,17 +2311,18 @@ void RenderScene()
 
 			for (int i = 0; i < AreaList.size(); i++)
 			{
-
-				ImGui::Text(ProcessName(AreaList[i]).c_str());
-
-				ImGui::SameLine();
-				ImGui::PushID(i);
-				if (ImGui::Button("X", ImVec2(100, 20)))
+				if (ProcessName(AreaList[i]) != "Copy")
 				{
-					AreaList.erase(AreaList.begin() + i);
-				}
-				ImGui::PopID();
+					ImGui::Text(ProcessName(AreaList[i]).c_str());
 
+					ImGui::SameLine();
+					ImGui::PushID(i);
+					if (ImGui::Button("X", ImVec2(100, 20)))
+					{
+						AreaList.erase(AreaList.begin() + i);
+					}
+					ImGui::PopID();
+				}
 
 			}
 
@@ -2362,6 +2384,22 @@ void RenderScene()
 					AreaList.push_back(PostProcess::Blur);
 					AreaList.push_back(PostProcess::SecondBlur);
 					AreaList.push_back(PostProcess::Combine);
+				}
+
+				if (ImGui::Button("CelShading", ImVec2(100, 20)))
+				{
+					AreaList.push_back(PostProcess::CelShading);
+				}
+
+				if (ImGui::Button("HeatHaze", ImVec2(100, 20)))
+				{
+					AreaList.push_back(PostProcess::HeatHaze);
+				}
+
+				if (ImGui::Button("TV Vision", ImVec2(100, 20)))
+				{
+					AreaList.push_back(PostProcess::TV);
+
 				}
 
 				if (ImGui::Button("Clear Window", ImVec2(100, 20)))
