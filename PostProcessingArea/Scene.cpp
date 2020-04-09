@@ -1283,16 +1283,6 @@ void ImagePostProcessing(PostProcess postProcess, int Target, int ResourseOutput
 // Perform a full-screen post process from "scene texture" to back buffer
 void FullScreenPostProcess(PostProcess postProcess, int pass, int firstTexture, int secondTexture)
 {
-	//// Select the back buffer to use for rendering. Not going to clear the back-buffer because we're going to overwrite it all
-	//gD3DContext->OMSetRenderTargets(1, &gBackBufferRenderTarget, gDepthStencil);
-
-
-	//// Give the pixel shader (post-processing shader) access to the scene texture 
-	//gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[0]);
-	//gD3DContext->PSSetSamplers(0, 1, &gPointSampler); // Use point sampling (no bilinear, trilinear, mip-mapping etc. for most post-processes)
-
-
-
 
 	// Using special vertex shader that creates its own data for a 2D screen quad
 	gD3DContext->VSSetShader(g2DQuadVertexShader, nullptr, 0);
@@ -1331,13 +1321,6 @@ void FullScreenPostProcess(PostProcess postProcess, int pass, int firstTexture, 
 	// Select shader and textures needed for the required post-processes (helper function above)
 	SelectPostProcessShaderAndTextures(postProcess, pass);
 
-	/*	UpdateConstantBuffer(gPostProcessingConstantBuffer, gPostProcessingConstants);
-		gD3DContext->PSSetConstantBuffers(1, 1, &gPostProcessingConstantBuffer);*/
-
-
-		//gD3DContext->Draw(4, 0);
-
-
 
 	// Set 2D area for full-screen post-processing (coordinates in 0->1 range)
 	gPostProcessingConstants.area2DTopLeft = { 0, 0 }; // Top-left of entire screen
@@ -1354,10 +1337,10 @@ void FullScreenPostProcess(PostProcess postProcess, int pass, int firstTexture, 
 	// Draw a quad
 	gD3DContext->Draw(4, 0);
 
-
+	//select render target
 	gD3DContext->OMSetRenderTargets(1, &gBackBufferRenderTarget, gDepthStencil);
 
-
+	//Draw quad
 	gD3DContext->Draw(4, 0);
 
 	ID3D11ShaderResourceView* nullSRV = nullptr;
@@ -1368,28 +1351,8 @@ void FullScreenPostProcess(PostProcess postProcess, int pass, int firstTexture, 
 // Perform an area post process from "scene texture" to back buffer at a given point in the world, with a given size (world units)
 void AreaPostProcess(PostProcess postProcess, CVector3 worldPoint, CVector2 areaSize)
 {
-
-	//if (currentList.size() % 2 == 0)
-	//{
-	//	// First perform a full-screen copy of the scene to back-buffer
-	//	FullScreenPostProcess(PostProcess::Copy, 0, 0, 1);
-
-	//	gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[0], gDepthStencil);
-
-	//	gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[1]);
-
-
-	//}
-	//else
-	//{
-	//	// First perform a full-screen copy of the scene to back-buffer
-	//	FullScreenPostProcess(PostProcess::Copy, 0, 1, 0);
-
-	//	gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[1], gDepthStencil);
-
-	//	gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[0]);
-
-	//}
+	//select render target
+	
 
 	FullScreenPostProcess(PostProcess::Copy, 0, 0, 1);
 
@@ -1453,12 +1416,13 @@ void AreaPostProcess(PostProcess postProcess, CVector3 worldPoint, CVector2 area
 	gD3DContext->VSSetConstantBuffers(1, 1, &gPostProcessingConstantBuffer);
 	gD3DContext->PSSetConstantBuffers(1, 1, &gPostProcessingConstantBuffer);
 
-
-
+	//Draw quad
 	gD3DContext->Draw(4, 0);
 
+	//select render target
 	gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[0], gDepthStencil);
 
+	//Draw quad
 	gD3DContext->Draw(4, 0);
 }
 
@@ -1715,14 +1679,9 @@ void RenderScene()
 		currentList.push_back(PostProcess::Copy);
 	}
 
-	gD3DContext->ClearDepthStencilView(gDepthStencil, D3D11_CLEAR_DEPTH, 1.0f, 0);
-
-	
+	gD3DContext->ClearDepthStencilView(gDepthStencil, D3D11_CLEAR_DEPTH, 1.0f, 0);	
 
 	// Setup the viewport to the size of the main window
-
-	//gD3DContext->PSSetShaderResources(1, 1, &gDepthShaderView);
-	//gD3DContext->PSSetSamplers(1, 1, &gPointSampler);
 
 	vp.Width = static_cast<FLOAT>(gViewportWidth);
 	vp.Height = static_cast<FLOAT>(gViewportHeight);
@@ -1754,9 +1713,6 @@ void RenderScene()
 
 	// Setup the viewport to the size of the main window
 
-	//gD3DContext->PSSetShaderResources(1, 1, &gDepthShaderView);
-	//gD3DContext->PSSetSamplers(1, 1, &gPointSampler);
-
 	vp.Width = static_cast<FLOAT>(gViewportWidth);
 	vp.Height = static_cast<FLOAT>(gViewportHeight);
 	vp.MinDepth = 0.0f;
@@ -1769,11 +1725,6 @@ void RenderScene()
 	// Render the scene from the main camera
 
 	RenderSceneFromCamera(gCamera);
-
-
-	
-	
-
 
 		if (gAreaPostProcessMode == true)
 		{
