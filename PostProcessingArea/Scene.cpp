@@ -101,6 +101,7 @@ float t = 100;
 int oldMouseWheelPos = 0;
 float camFar = 1000.0f;
 
+
 //const int kernalSize = 64;
 
 // Meshes, models and cameras, same meaning as TL-Engine. Meshes prepared in InitGeometry function, Models & camera in InitScene
@@ -1431,31 +1432,12 @@ void AreaPostProcess(PostProcess postProcess, CVector3 worldPoint, CVector2 area
 void PolygonPostProcess(PostProcess postProcess, const std::array<CVector3, 4> & points, const CMatrix4x4& worldMatrix, int pass, int texture1, int texture2)
 {
 
-	
-
-		//if (currentList.size() % 2 == 0)
-		//{
-		//	// First perform a full-screen copy of the scene to back-buffer
-		//	FullScreenPostProcess(PostProcess::Copy, 0, 1, 0);
-
-		//	gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[1], gDepthStencil);
-
-		//	gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[0]);
-
-
-		//}
-		//else
-		//{
 			// First perform a full-screen copy of the scene to back-buffer
 			FullScreenPostProcess(PostProcess::Copy, 0, 0, 1);
 
 			gD3DContext->OMSetRenderTargets(1, &gSceneRenderTarget[texture1], gDepthStencil);
 
 			gD3DContext->PSSetShaderResources(0, 1, &gSceneTextureSRV[texture2]);
-
-		//}
-	
-
 	
 
 	// Now perform a post-process of a portion of the scene to the back-buffer (overwriting some of the copy above)
@@ -1490,10 +1472,7 @@ void PolygonPostProcess(PostProcess postProcess, const std::array<CVector3, 4> &
 
 	// Select the special 2D polygon post-processing vertex shader and draw the polygon
 	gD3DContext->VSSetShader(g2DPolygonVertexShader, nullptr, 0);
-
-
-
-
+	   	 
 	gD3DContext->Draw(4, 0);
 
 
@@ -1817,6 +1796,7 @@ void RenderScene()
 				}
 			}
 		}
+
 		// Run any post-processing steps
 		if (!currentList.empty())
 		{
@@ -1847,22 +1827,10 @@ void RenderScene()
 			}
 		}
 
-		
-		
-		
-		
-
-
-
-
 		// These lines unbind the scene texture from the pixel shader to stop DirectX issuing a warning when we try to render to it again next frame
 			//ID3D11ShaderResourceView* nullSRV = nullptr;
 		gD3DContext->PSSetShaderResources(0, 1, &nullSRV);
-
-	
-
-
-
+		
 	//IMGUI
 	//*******************************
 	// Draw ImGUI interface
@@ -1943,7 +1911,7 @@ void RenderScene()
 
 
 
-	ImGui::SliderInt("Blur", &gPostProcessingConstants.kernalSize, 3, KernelMaxSize);
+	ImGui::SliderInt("Blur Slider for Blur/Bloom/Light Beams/Depth", &gPostProcessingConstants.kernalSize, 3, KernelMaxSize);
 
 	//ImGui::SliderFloat("Red", &gPostProcessingConstants.waterColour.x, 0, 1);
 	//ImGui::SliderFloat("Green", &gPostProcessingConstants.waterColour.y, 0, 1);
@@ -1969,42 +1937,39 @@ void RenderScene()
 			for (int i = 0; i < currentList.size(); i++)
 			{
 
-
-
-
-
 				ImGui::Text(ProcessName(currentList[i]).c_str());
+
+				ImGui::SameLine();
+				ImGui::PushID(i);
+				if (ImGui::Button("X", ImVec2(100, 20)))
+				{
+					currentList.erase(currentList.begin() + i);
+				}
+				ImGui::PopID();
+
+
 			}
 
 			ImGui::End();
 
-			ImGui::PushID(0);
-			ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(7.0f, 0.6f, 0.6f));
-			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(7.0f, 0.7f, 0.7f));
-			ImGui::PushStyleColor(ImGuiCol_ButtonActive, (ImVec4)ImColor::HSV(7.0f, 0.8f, 0.8f));
+		
 			if (ImGui::Button("Tint", ImVec2(100, 20)))
 			{
 				gCurrentPostProcess = PostProcess::Tint, currentList.push_back(gCurrentPostProcess);
 			}
 		
-			ImGui::PopStyleColor(3);
-			ImGui::PopID();
 
-			ImGui::SameLine();
-
-		
-
-			if (ImGui::Button("Hue", ImVec2(100, 20)))
-			{
-				gPostProcessingConstants.hueOnOff = !gPostProcessingConstants.hueOnOff;
-			}
-
+			ImGui::SameLine();		
+			ImGui::Checkbox("Hue", &gPostProcessingConstants.hueOnOff);
 			
 
 			if (ImGui::Button("Blur", ImVec2(100, 20)))
 			{
 				gCurrentPostProcess = PostProcess::Blur, currentList.push_back(gCurrentPostProcess), gCurrentPostProcess = PostProcess::SecondBlur, currentList.push_back(gCurrentPostProcess);
 			}
+
+			
+
 
 			if (ImGui::Button("Burn", ImVec2(100, 20)))
 			{
@@ -2092,10 +2057,36 @@ void RenderScene()
 
 	if (ImGui::TreeNode("TV Post Processes"))
 	{
+		ImGui::Begin("Current Menu", 0, ImGuiWindowFlags_AlwaysAutoResize);
+		ImGui::Text("Current TV Processes");
+
+
+		for (int i = 0; i < TVList.size(); i++)
+		{
+
+			ImGui::Text(ProcessName(TVList[i]).c_str());
+
+			ImGui::SameLine();
+			ImGui::PushID(i);
+			if (ImGui::Button("X", ImVec2(100, 20)))
+			{
+				TVList.erase(TVList.begin() + i);
+			}
+			ImGui::PopID();
+
+
+		}
+
+		ImGui::End();
+
+
 		if (ImGui::Button("Tint", ImVec2(100, 20)))
 		{
 			TVList.push_back(PostProcess::Tint);
 		}
+
+		ImGui::SameLine();
+		ImGui::Checkbox("Hue", &gPostProcessingConstants.hueOnOff);
 
 		if (ImGui::Button("Retro", ImVec2(100, 20)))
 		{
@@ -2159,6 +2150,9 @@ void RenderScene()
 		if (ImGui::TreeNode("Poly Windows"))
 		{
 
+
+
+
 			for (int i = 0; i < postProcessOrder.size(); i++)
 			{
 				if (i > 0)
@@ -2173,10 +2167,41 @@ void RenderScene()
 				}
 				ImGui::PopStyleColor(3);
 				ImGui::PopID();
+
+
 			}
 
+			if (currentSelectedPoly != 0)
+			{
+				ImGui::Text("Selected Window:");
+					ImGui::SameLine();
+				ImGui::Text(currentSelectedPoly->name.c_str());
+
+				ImGui::Begin("Current Menu", 0, ImGuiWindowFlags_AlwaysAutoResize);
+				ImGui::Text("Current");
+				ImGui::SameLine();
+				ImGui::Text(currentSelectedPoly->name.c_str());
+				ImGui::SameLine();
+				ImGui::Text("Processes");
+
+				for (int i = 0; i < currentSelectedPoly->process.size(); i++)
+				{
+
+					ImGui::Text(ProcessName(currentSelectedPoly->process[i]).c_str());
+
+					ImGui::SameLine();
+					ImGui::PushID(i);
+					if (ImGui::Button("X", ImVec2(100, 20)))
+					{
+						currentSelectedPoly->process.erase(currentSelectedPoly->process.begin() + i);
+					}
+					ImGui::PopID();
 
 
+				}
+
+				ImGui::End();
+			}
 
 			if (currentSelectedPoly != NULL)
 			{
@@ -2186,6 +2211,9 @@ void RenderScene()
 				{
 					currentSelectedPoly->process.push_back(PostProcess::Tint);
 				}
+
+				ImGui::SameLine();
+				ImGui::Checkbox("Hue", &gPostProcessingConstants.hueOnOff);
 
 				if (ImGui::Button("Retro", ImVec2(100, 20)))
 				{
@@ -2256,33 +2284,36 @@ void RenderScene()
 
 		if (ImGui::TreeNode("Area Post Processes"))
 		{
-
-		/*	for (int i = 0; i < postProcessOrder.size(); i++)
-			{
-				if (i > 0)
-					ImGui::SameLine();
-				ImGui::PushID(i);
-				ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(i / 7.0f, 0.6f, 0.6f));
-				ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(i / 7.0f, 0.7f, 0.7f));
-				ImGui::PushStyleColor(ImGuiCol_ButtonActive, (ImVec4)ImColor::HSV(i / 7.0f, 0.8f, 0.8f));
-				if (ImGui::Button(postProcessOrder[i]->name.c_str(), ImVec2(100, 20)))
-				{
-					currentSelectedPoly = postProcessOrder[i];
-				}
-				ImGui::PopStyleColor(3);
-				ImGui::PopID();
-			}*/
-
-
-
-
+			ImGui::Begin("Current Menu", 0, ImGuiWindowFlags_AlwaysAutoResize);
+			ImGui::Text("Current Area Processes");
 			
+
+			for (int i = 0; i < AreaList.size(); i++)
+			{
+
+				ImGui::Text(ProcessName(AreaList[i]).c_str());
+
+				ImGui::SameLine();
+				ImGui::PushID(i);
+				if (ImGui::Button("X", ImVec2(100, 20)))
+				{
+					AreaList.erase(AreaList.begin() + i);
+				}
+				ImGui::PopID();
+
+
+			}
+
+			ImGui::End();		
 
 
 				if (ImGui::Button("Tint", ImVec2(100, 20)))
 				{
 					AreaList.push_back(PostProcess::Tint);
 				}
+
+				ImGui::SameLine();
+				ImGui::Checkbox("Hue", &gPostProcessingConstants.hueOnOff);
 
 				if (ImGui::Button("Retro", ImVec2(100, 20)))
 				{
@@ -2521,10 +2552,7 @@ void UpdateScene(float frameTime)
 		static float UnderWaterTimer = 0.0f;
 		const float UnderWaterSpeed = 0.5f;
 		gPostProcessingConstants.underWaterLevel = ((1.0f - cos(UnderWaterTimer)) * 4.0f);
-		UnderWaterTimer += UnderWaterSpeed * frameTime;
-	
-
-	
+		UnderWaterTimer += UnderWaterSpeed * frameTime;	
 
 	//***********
 
@@ -2555,8 +2583,8 @@ void UpdateScene(float frameTime)
 	{
 		ModelSelected = MoveNearestEntity;
 
-		//MousePixel.x = GetMouseX();
-		//MousePixel.y = GetMouseY();
+		MousePixel.x = GetMouseX();
+		MousePixel.y = GetMouseY();
 
 		CVector3 modelRotation = ModelSelected->Rotation();
 		if (KeyHeld(Key_Comma))
@@ -2600,7 +2628,7 @@ void UpdateScene(float frameTime)
 		{
 			//Move to newPos decided by mouse position
 
-			//ModelSelected->SetPosition(newPos);
+			ModelSelected->SetPosition(newPos);
 
 
 		}

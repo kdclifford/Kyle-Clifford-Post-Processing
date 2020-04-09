@@ -1,110 +1,15 @@
-﻿  compilation object save succeeded; see C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\2DPolygon_pp.cso
-C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\BloomCombine_pp.hlsl(32,12-73): warning X3206: implicit truncation of vector type
-  compilation object save succeeded; see C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\BloomCombine_pp.cso
-C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\BloomCombine_pp.hlsl(34,15-78): warning X3206: implicit truncation of vector type
-  
-C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\Bloom_pp.hlsl(35,12-68): warning X3206: implicit truncation of vector type
-  
-  compilation object save succeeded; see C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\Bloom_pp.cso
-C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\Blur_pp.hlsl(75,12-104): warning X3206: implicit truncation of vector type
-C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\Blur_pp.hlsl(80,14): warning X3078: 'i': loop control variable conflicts with a previous declaration in the outer scope; most recent declaration will be used
-C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\Blur_pp.hlsl(83,9): warning X3206: implicit truncation of vector type
-C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\Blur_pp.hlsl(35,9-23): warning X3556: integer modulus may be much slower, try using uints if possible.
-C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\Blur_pp.hlsl(75,82-98): warning X3556: integer divides may be much slower, try using uints if possible.
-C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\Blur_pp.hlsl(80,19-35): warning X3556: integer divides may be much slower, try using uints if possible.
-  
-  compilation object save succeeded; see C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\Blur_pp.cso
-  compilation object save succeeded; see C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\Burn_pp.cso
-C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\CelShading_pp.hlsl(29,12-69): warning X3206: implicit truncation of vector type
-C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\CelShading_pp.hlsl(33,11-90): warning X3206: implicit truncation of vector type
-C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\CelShading_pp.hlsl(34,11-84): warning X3206: implicit truncation of vector type
-C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\CelShading_pp.hlsl(35,11-89): warning X3206: implicit truncation of vector type
-C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\CelShading_pp.hlsl(37,11-84): warning X3206: implicit truncation of vector type
-C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\CelShading_pp.hlsl(38,11-78): warning X3206: implicit truncation of vector type
-C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\CelShading_pp.hlsl(39,11-83): warning X3206: implicit truncation of vector type
-C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\CelShading_pp.hlsl(41,11-89): warning X3206: implicit truncation of vector type
-C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\CelShading_pp.hlsl(42,11-83): warning X3206: implicit truncation of vector type
-C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\CelShading_pp.hlsl(43,11-88): warning X3206: implicit truncation of vector type
-  
-  compilation object save succeeded; see C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\CelShading_pp.cso
-  compilation object save succeeded; see C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\Copy_pp.cso
-C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\Depth_pp.hlsl(34,12-72): warning X3206: implicit truncation of vector type
-C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\Depth_pp.hlsl(37,23-32): warning X3081: comma expression used where a vector constructor may have been intended
-C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\Depth_pp.hlsl(37,23-38): warning X3081: comma expression used where a vector constructor may have been intended
-C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\Depth_pp.hlsl(37,23-44): warning X3081: comma expression used where a vector constructor may have been intended
-C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\Depth_pp.hlsl(44,3-22): warning X3206: implicit truncation of vector type
-C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\Depth_pp.hlsl(49,3-21): warning X3206: implicit truncation of vector type
-  
-  compilation object save succeeded; see C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\Depth_pp.cso
-  compilation object save succeeded; see C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\Distort_pp.cso
-  compilation object save succeeded; see C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\2DQuad_pp.cso
-  compilation object save succeeded; see C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\DepthOnly_ps.cso
-  compilation object save succeeded; see C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\GreyNoise_pp.cso
-  compilation object save succeeded; see C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\HeatHaze_pp.cso
-C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\Invert_pp.hlsl(33,12-67): warning X3206: implicit truncation of vector type
-  
-  compilation object save succeeded; see C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\Invert_pp.cso
-C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\LightBeams_pp.hlsl(54,11-43): warning X3206: implicit truncation of vector type
-C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\LightBeams_pp.hlsl(64,16-59): warning X3206: implicit truncation of vector type
-  
-  compilation object save succeeded; see C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\LightBeams_pp.cso
-  compilation object save succeeded; see C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\Portal_ps.cso
-C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\Retro_pp.hlsl(33,12-61): warning X3206: implicit truncation of vector type
-  
-  compilation object save succeeded; see C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\Retro_pp.cso
-C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\SecondBlur_pp.hlsl(83,12-104): warning X3206: implicit truncation of vector type
-C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\SecondBlur_pp.hlsl(88,14): warning X3078: 'i': loop control variable conflicts with a previous declaration in the outer scope; most recent declaration will be used
-C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\SecondBlur_pp.hlsl(91,9): warning X3206: implicit truncation of vector type
-C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\SecondBlur_pp.hlsl(45,8-22): warning X3556: integer modulus may be much slower, try using uints if possible.
-C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\SecondBlur_pp.hlsl(83,82-98): warning X3556: integer divides may be much slower, try using uints if possible.
-C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\SecondBlur_pp.hlsl(88,19-35): warning X3556: integer divides may be much slower, try using uints if possible.
-  
-  compilation object save succeeded; see C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\SecondBlur_pp.cso
-  compilation object save succeeded; see C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\Spiral_pp.cso
-  compilation object save succeeded; see C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\TintedTexture_ps.cso
-  compilation object save succeeded; see C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\BasicTransform_vs.cso
-  compilation object save succeeded; see C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\PixelLighting_ps.cso
-  compilation object save succeeded; see C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\PixelLighting_vs.cso
-C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\Tint_pp.hlsl(33,41): warning X4000: use of potentially uninitialized variable (HueToRGB)
-  
-  compilation object save succeeded; see C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\Tint_pp.cso
-  compilation object save succeeded; see C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\Tv_pp.cso
-C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\UnderWater_pp.hlsl(51,12-83): warning X3206: implicit truncation of vector type
-  
-  compilation object save succeeded; see C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\UnderWater_pp.cso
-  Camera.cpp
-  Direct3DSetup.cpp
-  imgui_impl_dx11.cpp
-  imgui_impl_win32.cpp
-  imgui.cpp
-  imgui_demo.cpp
-  imgui_draw.cpp
-  imgui_widgets.cpp
-  Main.cpp
-  CMatrix4x4.cpp
-  CVector2.cpp
-  CVector3.cpp
-  CVector4.cpp
-  Mesh.cpp
-  Model.cpp
-  Scene.cpp
-C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\Scene.cpp(293,13): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\Scene.cpp(293,8): warning C4101: 'r': unreferenced local variable
-C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\Scene.cpp(736,77): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\Scene.cpp(2381,26): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
-C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\Scene.cpp(2382,26): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
-C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\Scene.cpp(2387,27): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
-C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\Scene.cpp(2388,27): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
-C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\Scene.cpp(2461,33): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\Scene.cpp(2548,26): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
-C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\Scene.cpp(2549,26): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
-  Shader.cpp
-  State.cpp
-  GraphicsHelpers.cpp
-  Input.cpp
-  Generating Code...
-  Compiling...
-  Timer.cpp
-  Generating Code...
-C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\Scene.cpp(2614,79): warning C4305: 'argument': truncation from 'double' to 'float'
-  PostProcessingArea.vcxproj -> C:\Users\Kyle\Documents\GitHub\post-process-assignment\PostProcessingArea\\PostProcessingArea.exe
+﻿  Scene.cpp
+C:\Users\maymo\OneDrive\Desktop\post-process-assignment\PostProcessingArea\Scene.cpp(294,13): warning C4244:  'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\maymo\OneDrive\Desktop\post-process-assignment\PostProcessingArea\Scene.cpp(294,8): warning C4101:  'r': unreferenced local variable
+C:\Users\maymo\OneDrive\Desktop\post-process-assignment\PostProcessingArea\Scene.cpp(737,77): warning C4305:  'argument': truncation from 'double' to 'float'
+C:\Users\maymo\OneDrive\Desktop\post-process-assignment\PostProcessingArea\Scene.cpp(2412,26): warning C4244:  '=': conversion from 'int' to 'float', possible loss of data
+C:\Users\maymo\OneDrive\Desktop\post-process-assignment\PostProcessingArea\Scene.cpp(2413,26): warning C4244:  '=': conversion from 'int' to 'float', possible loss of data
+C:\Users\maymo\OneDrive\Desktop\post-process-assignment\PostProcessingArea\Scene.cpp(2418,27): warning C4244:  '=': conversion from 'int' to 'float', possible loss of data
+C:\Users\maymo\OneDrive\Desktop\post-process-assignment\PostProcessingArea\Scene.cpp(2419,27): warning C4244:  '=': conversion from 'int' to 'float', possible loss of data
+C:\Users\maymo\OneDrive\Desktop\post-process-assignment\PostProcessingArea\Scene.cpp(2492,33): warning C4267:  'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\maymo\OneDrive\Desktop\post-process-assignment\PostProcessingArea\Scene.cpp(2576,26): warning C4244:  '=': conversion from 'int' to 'float', possible loss of data
+C:\Users\maymo\OneDrive\Desktop\post-process-assignment\PostProcessingArea\Scene.cpp(2577,26): warning C4244:  '=': conversion from 'int' to 'float', possible loss of data
+C:\Users\maymo\OneDrive\Desktop\post-process-assignment\PostProcessingArea\Scene.cpp(2586,27): warning C4244:  '=': conversion from 'int' to 'float', possible loss of data
+C:\Users\maymo\OneDrive\Desktop\post-process-assignment\PostProcessingArea\Scene.cpp(2587,27): warning C4244:  '=': conversion from 'int' to 'float', possible loss of data
+C:\Users\maymo\OneDrive\Desktop\post-process-assignment\PostProcessingArea\Scene.cpp(2642,79): warning C4305:  'argument': truncation from 'double' to 'float'
+  PostProcessingArea.vcxproj -> C:\Users\maymo\OneDrive\Desktop\post-process-assignment\PostProcessingArea\\PostProcessingArea.exe
