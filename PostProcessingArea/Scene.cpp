@@ -102,6 +102,9 @@ int oldMouseWheelPos = 0;
 float camFar = 1000.0f;
 
 
+
+
+
 //const int kernalSize = 64;
 
 // Meshes, models and cameras, same meaning as TL-Engine. Meshes prepared in InitGeometry function, Models & camera in InitScene
@@ -113,6 +116,7 @@ Mesh* gLightMesh;
 Mesh* gPortalMesh;
 Mesh* gWallMesh;
 Mesh* gWall2Mesh;
+
 
 Model* gStars;
 Model* gGround;
@@ -253,10 +257,6 @@ CVector2 MousePixel;
 
 
 //portal stuff
-
-
-
-
 
 
 //--------------------------------------------------------------------------------------
